@@ -15,15 +15,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.qubole.spyspark.analyzer
+package com.qubole.sparklens.analyzer
 
-import com.qubole.spyspark.common.{AggregateMetrics, AppContext}
-import com.qubole.spyspark.timespan.JobTimeSpan
-import com.qubole.spyspark.common.AppContext
-import com.qubole.spyspark.timespan.HostTimeSpan
+import com.qubole.sparklens.common.{AggregateMetrics, AppContext}
+import com.qubole.sparklens.timespan.JobTimeSpan
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 /*
  * Prints information about all the jobs and shows how the

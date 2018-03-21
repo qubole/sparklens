@@ -15,11 +15,11 @@
 * limitations under the License.
 */
 
-package com.qubole.spyspark
+package com.qubole.sparklens
 
-import com.qubole.spyspark.analyzer._
-import com.qubole.spyspark.common.{AggregateMetrics, AppContext, ApplicationInfo}
-import com.qubole.spyspark.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
+import com.qubole.sparklens.analyzer._
+import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
+import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import org.apache.spark.SparkConf
 import org.apache.spark.scheduler._
 

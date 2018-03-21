@@ -15,7 +15,7 @@
 * limitations under the License.
 */
 
-package com.qubole.spyspark.scheduler
+package com.qubole.sparklens.scheduler
 
 import scala.collection.mutable
 

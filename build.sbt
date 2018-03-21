@@ -1,4 +1,4 @@
-name := "spyspark"
+name := "sparklens"
 organization := "com.qubole"
 version := "0.1.0"
 

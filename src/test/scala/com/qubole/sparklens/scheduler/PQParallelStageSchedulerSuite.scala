@@ -15,9 +15,9 @@
 * limitations under the License.
 */
 
-package com.qubole.spyspark.scheduler
+package com.qubole.sparklens.scheduler
 
-import com.qubole.spyspark.timespan.{JobTimeSpan, StageTimeSpan}
+import com.qubole.sparklens.timespan.{JobTimeSpan, StageTimeSpan}
 import org.scalatest.FunSuite
 
 import scala.collection.mutable.ListBuffer
