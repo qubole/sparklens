@@ -14,15 +14,29 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.qubole.spyspark.scheduler
+package com.qubole.sparklens.timespan
 
 /*
- * Created by rohitk on 21/09/17.
+ * We will look at the application as a sequence of timeSpans
  */
-trait TaskScheduler {
-  def schedule(taskTime: Int, stageID: Int = -1): Unit
-  def wallClockTime(): Long
-  def runTillStageCompletion():Int
-  def isStageComplete(stageID: Int): Boolean
-  def onStageFinished(stageID: Int): Unit = ???
+trait TimeSpan  {
+  var startTime: Long = 0
+  var endTime: Long = 0
+
+  def setEndTime(time: Long): Unit = {
+    endTime = time
+  }
+
+  def setStartTime(time: Long): Unit = {
+    startTime = time
+  }
+  def isFinished(): Boolean = (endTime != 0 && startTime != 0)
+
+  def duration(): Option[Long] = {
+    if (isFinished()) {
+      Some(endTime - startTime)
+    } else {
+      None
+    }
+  }
 }

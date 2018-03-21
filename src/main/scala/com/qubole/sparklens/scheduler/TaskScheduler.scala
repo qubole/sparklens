@@ -14,21 +14,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+package com.qubole.sparklens.scheduler
 
-package com.qubole.spyspark.timespan
-
-import com.qubole.spyspark.common.AggregateMetrics
-import org.apache.spark.executor.TaskMetrics
-import org.apache.spark.scheduler.TaskInfo
-
-
-
-class ExecutorTimeSpan(val executorID: String,
-                       val hostID: String,
-                       val cores: Int) extends TimeSpan {
-  val executorMetrics = new AggregateMetrics()
-
-  def updateAggregateTaskMetrics (taskMetrics: TaskMetrics, taskInfo: TaskInfo): Unit = {
-    executorMetrics.update(taskMetrics, taskInfo)
-  }
+/*
+ * Created by rohitk on 21/09/17.
+ */
+trait TaskScheduler {
+  def schedule(taskTime: Int, stageID: Int = -1): Unit
+  def wallClockTime(): Long
+  def runTillStageCompletion():Int
+  def isStageComplete(stageID: Int): Boolean
+  def onStageFinished(stageID: Int): Unit = ???
 }

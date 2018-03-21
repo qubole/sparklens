@@ -14,11 +14,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.qubole.spyspark
+package com.qubole.sparklens
 
-import com.qubole.spyspark.analyzer.{AppAnalyzer, EfficiencyStatisticsAnalyzer, ExecutorWallclockAnalyzer, StageSkewAnalyzer}
-import com.qubole.spyspark.common.AppContext
-import com.qubole.spyspark.timespan.{ExecutorTimeSpan, HostTimeSpan}
+import com.qubole.sparklens.analyzer.{AppAnalyzer, EfficiencyStatisticsAnalyzer, ExecutorWallclockAnalyzer, StageSkewAnalyzer}
+import com.qubole.sparklens.common.AppContext
+import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan}
 import org.apache.spark.scheduler.{SparkListenerApplicationEnd, SparkListenerTaskStart}
 import org.apache.spark.util.SizeEstimator
 import org.apache.spark.{SparkConf, SparkContext}

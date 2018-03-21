@@ -14,8 +14,21 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.qubole.spyspark.common
 
-case class ApplicationInfo (var applicationID:String = "NA",
-                            var startTime:Long = 0L,
-                            var endTime:Long = 0L)
+package com.qubole.sparklens.timespan
+
+import com.qubole.sparklens.common.AggregateMetrics
+import org.apache.spark.executor.TaskMetrics
+import org.apache.spark.scheduler.TaskInfo
+
+
+
+class ExecutorTimeSpan(val executorID: String,
+                       val hostID: String,
+                       val cores: Int) extends TimeSpan {
+  val executorMetrics = new AggregateMetrics()
+
+  def updateAggregateTaskMetrics (taskMetrics: TaskMetrics, taskInfo: TaskInfo): Unit = {
+    executorMetrics.update(taskMetrics, taskInfo)
+  }
+}

@@ -1,3 +1,4 @@
+
 /*
 * Licensed to the Apache Software Foundation (ASF) under one or more
 * contributor license agreements.  See the NOTICE file distributed with
@@ -14,26 +15,24 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+package com.qubole.sparklens.analyzer
 
-package com.qubole.spyspark.timespan
+import com.qubole.sparklens.common.AppContext
 
-import com.qubole.spyspark.common.AggregateMetrics
-import org.apache.spark.executor.TaskMetrics
-import org.apache.spark.scheduler.TaskInfo
-
-
-class HostTimeSpan(val hostID: String) extends TimeSpan {
-  val hostMetrics = new AggregateMetrics()
+import scala.collection.mutable
 
 /*
-We don't get any event when host is lost.
-TODO: may be mark all host end time when execution is stopped
+ * Created by rohitk on 21/09/17.
  */
-  override def duration():Option[Long] = {
-    Some(super.duration().getOrElse(System.currentTimeMillis() - startTime))
-  }
+class SimpleAppAnalyzer extends  AppAnalyzer {
 
-  def updateAggregateTaskMetrics (taskMetrics: TaskMetrics, taskInfo: TaskInfo): Unit = {
-    hostMetrics.update(taskMetrics, taskInfo)
+  def analyze(appContext: AppContext, startTime: Long, endTime: Long): String = {
+    val ac = appContext.filterByStartAndEndTime(startTime, endTime)
+    val out = new mutable.StringBuilder()
+
+    out.println("\nPrinting application meterics.....\n")
+    ac.appMetrics.print("Application Metrics", out)
+    out.println("\n")
+    out.toString()
   }
 }

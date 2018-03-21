@@ -14,10 +14,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.qubole.spyspark.common
+package com.qubole.sparklens.common
 
-import com.qubole.spyspark.timespan.{ExecutorTimeSpan, JobTimeSpan, StageTimeSpan}
-import com.qubole.spyspark.timespan._
+import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 
 import scala.collection.mutable
 

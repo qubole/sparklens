@@ -15,10 +15,10 @@
 * limitations under the License.
 */
 
-package com.qubole.spyspark.scheduler
+package com.qubole.sparklens.scheduler
 
-import com.qubole.spyspark.common.AppContext
-import com.qubole.spyspark.timespan.JobTimeSpan
+import com.qubole.sparklens.common.AppContext
+import com.qubole.sparklens.timespan.JobTimeSpan
 
 import scala.collection.mutable
 

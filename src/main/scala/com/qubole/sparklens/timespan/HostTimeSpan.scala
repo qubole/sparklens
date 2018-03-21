@@ -14,29 +14,26 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.qubole.spyspark.timespan
+
+package com.qubole.sparklens.timespan
+
+import com.qubole.sparklens.common.AggregateMetrics
+import org.apache.spark.executor.TaskMetrics
+import org.apache.spark.scheduler.TaskInfo
+
+
+class HostTimeSpan(val hostID: String) extends TimeSpan {
+  val hostMetrics = new AggregateMetrics()
 
 /*
- * We will look at the application as a sequence of timeSpans
+We don't get any event when host is lost.
+TODO: may be mark all host end time when execution is stopped
  */
-trait TimeSpan  {
-  var startTime: Long = 0
-  var endTime: Long = 0
-
-  def setEndTime(time: Long): Unit = {
-    endTime = time
+  override def duration():Option[Long] = {
+    Some(super.duration().getOrElse(System.currentTimeMillis() - startTime))
   }
 
-  def setStartTime(time: Long): Unit = {
-    startTime = time
-  }
-  def isFinished(): Boolean = (endTime != 0 && startTime != 0)
-
-  def duration(): Option[Long] = {
-    if (isFinished()) {
-      Some(endTime - startTime)
-    } else {
-      None
-    }
+  def updateAggregateTaskMetrics (taskMetrics: TaskMetrics, taskInfo: TaskInfo): Unit = {
+    hostMetrics.update(taskMetrics, taskInfo)
   }
 }

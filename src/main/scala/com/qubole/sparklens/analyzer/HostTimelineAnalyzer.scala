@@ -15,24 +15,42 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.qubole.spyspark.analyzer
+package com.qubole.sparklens.analyzer
 
-import com.qubole.spyspark.common.AppContext
+import com.qubole.sparklens.common.AppContext
+import com.qubole.sparklens.timespan.HostTimeSpan
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 /*
  * Created by rohitk on 21/09/17.
  */
-class SimpleAppAnalyzer extends  AppAnalyzer {
+class HostTimelineAnalyzer extends  AppAnalyzer {
 
   def analyze(appContext: AppContext, startTime: Long, endTime: Long): String = {
     val ac = appContext.filterByStartAndEndTime(startTime, endTime)
     val out = new mutable.StringBuilder()
-
-    out.println("\nPrinting application meterics.....\n")
-    ac.appMetrics.print("Application Metrics", out)
+    out.println("Done printing host timeline")
+    out.println(s"\nTotal Hosts ${ac.hostMap.size}")
+    val minuteHostMap = new mutable.HashMap[Long, ListBuffer[HostTimeSpan]]()
+    ac.hostMap.values
+      .foreach( x => {
+        val startMinute = x.startTime / 60*1000
+        val minuteList = minuteHostMap.getOrElse(startMinute, new mutable.ListBuffer[HostTimeSpan]())
+        minuteList += x
+      })
+    minuteHostMap.keys.toBuffer
+      .sortWith( (a, b) => a < b)
+      .foreach( x => {
+        out.println (s"At ${pt(x*60*1000)} added ${minuteHostMap(x).size} hosts ")
+      })
     out.println("\n")
+    ac.hostMap.values.foreach(x => {
+      val executorsOnHost = ac.executorMap.values.filter( _.hostID.equals(x.hostID))
+      out.println(s"Host ${x.hostID} startTime ${pt(x.startTime)} executors count ${executorsOnHost.size}")
+    })
+    out.println("Done printing host timeline")
     out.toString()
   }
 }

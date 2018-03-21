@@ -1,9 +1,9 @@
 # README #
 
-Spyspark is a profiling tool for Spark with built-in Spark Scheduler simulator. Its primary goal is to make it easy 
+Sparklens is a profiling tool for Spark with built-in Spark Scheduler simulator. Its primary goal is to make it easy 
 to understand the scalability limits of spark applications. It helps in understanding how efficiently is a given 
 spark application using the compute resources provided to it. May be your application will run faster with more 
-executors and may be it wont. Spyspark can answer this question by looking at a single run of your application. 
+executors and may be it wont. Sparklens can answer this question by looking at a single run of your application. 
 
 It helps you narrow down to few stages (or driver, or skew or lack of tasks) which are limiting your application 
 from scaling out and provides contextual information about what could be going wrong with these stages. Primarily 
@@ -21,7 +21,7 @@ trial and error, saving both developer and compute time.
  Executor count   248  ( 80%) estimated time 16m 43s and estimated cluster utilization 60.65%
  Executor count   310  (100%) estimated time 14m 49s and estimated cluster utilization 54.73%
 ```
-Given a single run of a spark application, spyspark can estimate how will your application perform 
+Given a single run of a spark application, Sparklens can estimate how will your application perform 
 given any arbitrary number of executors. This helps you understand the ROI on adding executors. 
 
 * Job/Stage timeline which shows how the parallel stages were scheduled within a job. This makes it easy to visualise 
@@ -57,7 +57,7 @@ Stage-ID   Wall    Task      Task     IO%    Input     Output    ----Shuffle----
        8    0.00    0.03        38    0.0    0.0 KB    0.0 KB    2.7 GB    2.7 GB    00m 05s   00m 00s    06h 20m    0.6   99.4    0.0 KB 
 ```
 
-Internally, Spyspark has a concept of Analyzer which is a generic component for emitting interesting events. 
+Internally, Sparklens has a concept of Analyzer which is a generic component for emitting interesting events. 
 Following Analyzers are currently available:
 
 1. AppTimelineAnalyzer
@@ -73,7 +73,7 @@ Following Analyzers are currently available:
 We are hoping that spark experts world over will help us with ideas or contributions to extend this set. And similarly 
 spark users can help us in finding what is missing here by raising challenging tuning questions.   
 
-### How to use Spyspark? ###
+### How to use Sparklens? ###
 
 We are working on getting this distributed via maven central. In the meantime:
 
@@ -84,28 +84,28 @@ sbt compile
 sbt package 
 sbt clean 
 ```
-You will find the spyspark jar in target/scala-2.11 directory. Make sure scala and java version correspond to those required by your spark cluster. We have tested it with java 7/8, 
+You will find the Sparklens jar in target/scala-2.11 directory. Make sure scala and java version correspond to those required by your spark cluster. We have tested it with java 7/8, 
 scala 2.11.8 and spark versions 2.0.0 onwards. 
 
-Once you have the spyspark jar available, add the following options to your spark submit command line:
+Once you have the Sparklens jar available, add the following options to your spark submit command line:
 ```
---jars /path/to/spyspark_2.11-0.1.0.jar 
---conf spark.extraListeners=com.qubole.spyspark.QuboleJobListener
+--jars /path/to/sparklens_2.11-0.1.0.jar 
+--conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 You could also add this to your cluster's **spark-defaults.conf** so that it is automatically available for all applications.
 
 
 ### Working with Notebooks ###
-It is possible to use spyspark in your development cycle using Notebooks. Spyspark keeps lots of information in-memory. 
+It is possible to use Sparklens in your development cycle using Notebooks. Sparklens keeps lots of information in-memory. 
 To make it work with Notebooks, it tries to minimize the amount of memory by keeping limited history of jobs executed 
 in spark. 
 
-### How to use SpaySpark with Python Notebooks (Zeppelin)? ###
+### How to use Sparklens with Python Notebooks (Zeppelin)? ###
 
 1) Add this as first paragraph
 
 ```
-QNL = sc._jvm.com.qubole.spyspark.QuboleNotebookListener.registerAndGet(sc._jsc.sc())
+QNL = sc._jvm.com.qubole.sparklens.QuboleNotebookListener.registerAndGet(sc._jsc.sc())
 import time
 
 def profileIt(callableCode, *args):
@@ -144,13 +144,13 @@ print(QNL.getStats(startTime, endTime))
 If gives up historical information, throwing away data about old stages to keep the memory usage 
 by the tool modest.
 
-### How to use SpaySpark with Scala Notebooks (Zeppelin)? ###
+### How to use Sparklens with Scala Notebooks (Zeppelin)? ###
 
 
 1) Add this as first paragraph
 
 ```
-import com.qubole.spyspark.QuboleNotebookListener
+import com.qubole.sparklens.QuboleNotebookListener
 val QNL = new QuboleNotebookListener(sc.getConf)
 sc.addSparkListener(QNL)
 ```
@@ -172,8 +172,8 @@ in Notebooks is little different from what you would see in command line. This i
 We will be making this part configurable. 
 
 ### More informtaion? ###
-* Introduction to SpySpark https://www.qubole.com/blog/introducing-quboles-spark-tuning-tool/
-* Video from meetup. Concepts behind SpySpark https://www.youtube.com/watch?v=0a2U4_6zsCc
+* Introduction to Sparklens https://www.qubole.com/blog/introducing-quboles-spark-tuning-tool/
+* Video from meetup. Concepts behind Sparklens https://www.youtube.com/watch?v=0a2U4_6zsCc
 * Slides from meetup. https://lnkd.in/fCsrKXj
 
 ### Contributing ###
@@ -181,5 +181,5 @@ We haven't given much thought. Just raise a PR and if you don't hear from us, sh
 help@qubole.com to get our attention. 
 
 ### Reporting bugs or feature requests ###
-Please use the github issues for the spyspark project to report issues or raise feature requests. If you can code,
+Please use the github issues for the Sparklens project to report issues or raise feature requests. If you can code,
 better raise a PR.

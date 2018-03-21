@@ -15,7 +15,7 @@
 * limitations under the License.
 */
 
-package com.qubole.spyspark.common
+package com.qubole.sparklens.common
 
 import java.util.Locale
 

@@ -15,9 +15,9 @@
 * limitations under the License.
 */
 
-package com.qubole.spyspark.timespan
+package com.qubole.sparklens.timespan
 
-import com.qubole.spyspark.common.AggregateMetrics
+import com.qubole.sparklens.common.AggregateMetrics
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
 
