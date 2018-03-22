@@ -47,7 +47,8 @@ class StageTimeSpan(val stageID: Int, numberOfTasks: Long) extends TimeSpan {
 
   def updateTasks(taskInfo: TaskInfo, taskMetrics: TaskMetrics): Unit = {
     if (taskInfo != null && taskMetrics != null) {
-      tempTaskTimes += ((taskInfo.taskId, taskMetrics.executorRunTime, taskMetrics.peakExecutionMemory))
+      //peak memory not available in spark 1.6.0
+      tempTaskTimes += ((taskInfo.taskId, taskMetrics.executorRunTime, 0L))
       if (taskInfo.launchTime < minTaskLaunchTime) {
         minTaskLaunchTime = taskInfo.launchTime
       }

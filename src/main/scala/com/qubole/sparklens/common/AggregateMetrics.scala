@@ -19,7 +19,7 @@ package com.qubole.sparklens.common
 
 import java.util.Locale
 
-import org.apache.spark.executor.TaskMetrics
+import org.apache.spark.executor.{InputMetrics, ShuffleReadMetrics, ShuffleWriteMetrics, TaskMetrics}
 import org.apache.spark.scheduler.TaskInfo
 
 import scala.collection.mutable
@@ -139,23 +139,35 @@ class AggregateMetrics() {
   }
 
   def update(tm: TaskMetrics, ti: TaskInfo): Unit = {
-    updateMetric(AggregateMetrics.shuffleWriteTime,         tm.shuffleWriteMetrics.writeTime)    //Nano to Millis
-    updateMetric(AggregateMetrics.shuffleWriteBytesWritten, tm.shuffleWriteMetrics.bytesWritten)
-    updateMetric(AggregateMetrics.shuffleWriteRecordsWritten, tm.shuffleWriteMetrics.recordsWritten)
-    updateMetric(AggregateMetrics.shuffleReadFetchWaitTime, tm.shuffleReadMetrics.fetchWaitTime)    //Nano to Millis
-    updateMetric(AggregateMetrics.shuffleReadBytesRead,     tm.shuffleReadMetrics.totalBytesRead)
-    updateMetric(AggregateMetrics.shuffleReadRecordsRead,   tm.shuffleReadMetrics.recordsRead)
-    updateMetric(AggregateMetrics.shuffleReadLocalBlocks,   tm.shuffleReadMetrics.localBlocksFetched)
-    updateMetric(AggregateMetrics.shuffleReadRemoteBlocks,  tm.shuffleReadMetrics.remoteBlocksFetched)
+    val shuffleWriteMetrics = tm.shuffleWriteMetrics.getOrElse(new ShuffleWriteMetrics)
+    val shuffleReadMetrics = tm.shuffleReadMetrics.getOrElse(new ShuffleReadMetrics)
+
+    updateMetric(AggregateMetrics.shuffleWriteTime,         shuffleWriteMetrics.shuffleWriteTime)    //Nano to Millis
+    updateMetric(AggregateMetrics.shuffleWriteBytesWritten, shuffleWriteMetrics.shuffleBytesWritten)
+    updateMetric(AggregateMetrics.shuffleWriteRecordsWritten, shuffleWriteMetrics.shuffleRecordsWritten)
+    updateMetric(AggregateMetrics.shuffleReadFetchWaitTime, shuffleReadMetrics.fetchWaitTime)    //Nano to Millis
+    updateMetric(AggregateMetrics.shuffleReadBytesRead,     shuffleReadMetrics.totalBytesRead)
+    updateMetric(AggregateMetrics.shuffleReadRecordsRead,   shuffleReadMetrics.recordsRead)
+    updateMetric(AggregateMetrics.shuffleReadLocalBlocks,   shuffleReadMetrics.localBlocksFetched)
+    updateMetric(AggregateMetrics.shuffleReadRemoteBlocks,  shuffleReadMetrics.remoteBlocksFetched)
     updateMetric(AggregateMetrics.executorRuntime,          tm.executorRunTime)
     updateMetric(AggregateMetrics.jvmGCTime,                tm.jvmGCTime)
     //updateMetric(AggregateMetrics.executorCpuTime,          tm.executorCpuTime) //Nano to Millis
     updateMetric(AggregateMetrics.resultSize,               tm.resultSize)
-    updateMetric(AggregateMetrics.inputBytesRead,           tm.inputMetrics.bytesRead)
-    updateMetric(AggregateMetrics.outputBytesWritten,       tm.outputMetrics.bytesWritten)
+    if (tm.inputMetrics.isDefined) {
+      updateMetric(AggregateMetrics.inputBytesRead, tm.inputMetrics.get.bytesRead)
+    }else {
+      updateMetric(AggregateMetrics.inputBytesRead, 0L)
+    }
+    if (tm.outputMetrics.isDefined) {
+      updateMetric(AggregateMetrics.outputBytesWritten, tm.outputMetrics.get.bytesWritten)
+    }else {
+      updateMetric(AggregateMetrics.outputBytesWritten, 0L)
+
+    }
     updateMetric(AggregateMetrics.memoryBytesSpilled,       tm.memoryBytesSpilled)
     updateMetric(AggregateMetrics.diskBytesSpilled,         tm.diskBytesSpilled)
-    updateMetric(AggregateMetrics.peakExecutionMemory,      tm.peakExecutionMemory)
+    updateMetric(AggregateMetrics.peakExecutionMemory,      0L)
     updateMetric(AggregateMetrics.taskDuration,             ti.duration)
     count += 1
   }
