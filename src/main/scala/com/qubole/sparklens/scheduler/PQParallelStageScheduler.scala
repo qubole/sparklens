@@ -101,4 +101,6 @@ class PQParallelStageScheduler(totalCores: Int, taskCountMap: mutable.HashMap[In
       wallClock
     }
   }
+
+  override def onStageFinished(stageID: Int): Unit = ???
 }
