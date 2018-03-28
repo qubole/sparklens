@@ -33,15 +33,19 @@ case class AppContext(appInfo:        ApplicationInfo,
       appMetrics,
       hostMap,
       executorMap
-        .filter(x => x._2.endTime == 0 ||            //still running
-                     x._2.endTime >= startTime ||    //ended while app was running
-                     x._2.startTime <= endTime),     //started while app was running
+        .filter{ case (_, timeSpan) => timeSpan.endTime == 0 ||            //still running
+                     timeSpan.endTime >= startTime ||    //ended while app was running
+                     timeSpan.startTime <= endTime
+        },     //started while app was running
       jobMap
-        .filter(x => x._2.startTime >= startTime &&
-                     x._2.endTime <= endTime),
+        .filter{ case(_, timeSpan) =>
+          timeSpan.startTime >= startTime &&
+                  timeSpan.endTime <= endTime
+        },
       stageMap
-        .filter(x => x._2.startTime >= startTime &&
-                     x._2.endTime <= endTime),
+        .filter{ case (_, timeSpan) => timeSpan.startTime >= startTime &&
+                    timeSpan.endTime <= endTime
+        },
       stageIDToJobID)
   }
 

@@ -24,5 +24,5 @@ trait TaskScheduler {
   def wallClockTime(): Long
   def runTillStageCompletion():Int
   def isStageComplete(stageID: Int): Boolean
-  def onStageFinished(stageID: Int): Unit = ???
+  def onStageFinished(stageID: Int): Unit
 }

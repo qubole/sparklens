@@ -35,8 +35,7 @@ class AppTimelineAnalyzer extends  AppAnalyzer {
     val jobids = ac.jobMap.keySet.toBuffer.sortWith( _ < _ )
     out.append(s"${pt(startTime)} app started \n")
     jobids.map( x => (x, ac.jobMap(x)))
-    .foreach( x => {
-      val (jobID, jobTimeSpan) = x
+    .foreach{ case (jobID, jobTimeSpan) =>
       if (jobTimeSpan.duration().isDefined) {
         out.println(s"${pt(jobTimeSpan.startTime)} JOB ${jobID} started : duration ${pd(jobTimeSpan.duration().get)} ")
         printStageTimeLine(out, jobTimeSpan)
@@ -47,7 +46,7 @@ class AppTimelineAnalyzer extends  AppAnalyzer {
           if (stageTimeSpan.duration().isDefined) {
             out.println(s"${pt(stageTimeSpan.startTime)}      Stage ${stageID} started : duration ${pd(stageTimeSpan.duration().get)} ")
             out.println(s"${pt(stageTimeSpan.endTime)}      Stage ${stageID} ended : maxTaskTime ${maxTaskTime} taskCount ${stageTimeSpan.taskExecutionTimes.length}")
-          }else {
+          } else {
             out.println(s"${pt(stageTimeSpan.startTime)}      Stage ${stageID} - duration not available ")
           }
         })
@@ -55,9 +54,9 @@ class AppTimelineAnalyzer extends  AppAnalyzer {
       }else {
         out.println(s"${pt(jobTimeSpan.startTime)} JOB ${jobID} - duration not availble")
       }
-    })
+    }
     out.println(s"${pt(endTime)} app ended \n")
-    out.toString()
+    out.toString
   }
 
 
@@ -71,8 +70,8 @@ class AppTimelineAnalyzer extends  AppAnalyzer {
       val x = (endTime-startTime)
       if (x <= 80) {
         1
-      }else {
-        x/80.toDouble
+      } else {
+        x/80.0
       }
     }
 
@@ -81,8 +80,7 @@ class AppTimelineAnalyzer extends  AppAnalyzer {
                 (x._2.startTime-startTime)/unit,     //start position
                 (x._2.endTime - startTime)/unit))    //end position
         .toBuffer.sortWith( (a, b) => a._1 < b._1)
-          .foreach( x => {
-            val (stageID, start, end) = x
+          .foreach{ case (stageID, start, end) =>
             out.print(f"[${stageID}%7s ")
             out.print(" " * start.toInt)
             out.print("|" * (end.toInt - start.toInt))
@@ -90,6 +88,6 @@ class AppTimelineAnalyzer extends  AppAnalyzer {
               out.print(" " * (80 - end.toInt))
             }
             out.println("]")
-          })
+          }
   }
 }

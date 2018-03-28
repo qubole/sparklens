@@ -23,7 +23,7 @@ import scala.collection.mutable
 /*
  * Created by rohitk on 21/09/17.
  */
-class EfficiencyStatisticsAnalyzer extends  AppAnalyzer {
+class EfficiencyStatisticsAnalyzer extends AppAnalyzer {
 
   def analyze(appContext: AppContext, startTime: Long, endTime: Long): String = {
     val ac = appContext.filterByStartAndEndTime(startTime, endTime)
