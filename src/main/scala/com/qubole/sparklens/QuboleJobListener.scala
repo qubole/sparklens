@@ -156,8 +156,15 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
                                     stageMap,
                                     stageIDToJobID)
     list.foreach( x => {
-      val output = x.analyze(appContext)
-      println(output)
+      try {
+        val output = x.analyze(appContext)
+        println(output)
+      } catch {
+        case e:Throwable => {
+          println(s"Failed in Analyzer ${x.getClass.getSimpleName}")
+          e.printStackTrace()
+        }
+      }
     })
   }
 
