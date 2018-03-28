@@ -49,16 +49,20 @@ class JobTimeSpan(val jobID: Long) extends TimeSpan {
   The computation takes into account the parallel stages.
    */
   def computeCriticalTimeForJob(): Long = {
-    val maxStageID = stageMap.map(x => x._1).max
-    val data  = stageMap.map(x =>
-      ( x._1,
-        (
-          x._2.parentStageIDs,
-          x._2.stageMetrics.map(AggregateMetrics.executorRuntime).max
+    if (stageMap.isEmpty) {
+      0L
+    }else {
+      val maxStageID = stageMap.map(x => x._1).max
+      val data = stageMap.map(x =>
+        (x._1,
+          (
+            x._2.parentStageIDs,
+            x._2.stageMetrics.map(AggregateMetrics.executorRuntime).max
+          )
         )
       )
-    )
-    criticalTime(maxStageID, data)
+      criticalTime(maxStageID, data)
+    }
   }
 
   /*

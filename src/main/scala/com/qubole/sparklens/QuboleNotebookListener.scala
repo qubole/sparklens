@@ -129,8 +129,15 @@ class QuboleNotebookListener(sparkConf: SparkConf) extends QuboleJobListener(spa
     val out = new mutable.StringBuilder()
 
     list.foreach(x => {
-      val result = x.analyze(appContext, fromTime, toTime)
-      out.append(result)
+      try {
+        val result = x.analyze(appContext, fromTime, toTime)
+        out.append(result)
+      } catch {
+        case e:Throwable => {
+          println(s"Failed in Analyzer ${x.getClass.getSimpleName}")
+          e.printStackTrace()
+        }
+      }
     })
     out.toString()
   }
