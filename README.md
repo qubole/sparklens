@@ -75,7 +75,14 @@ spark users can help us in finding what is missing here by raising challenging t
 
 ### How to use Sparklens? ###
 
-We are working on getting this distributed via maven central. In the meantime:
+Using the sparklens package.
+
+```
+--packages com.qubole:sparklens:0.1.2-s_2.11
+--conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
+```
+
+Or 
 
 Checkout the code and use the normal sbt commands: 
 
