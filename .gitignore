@@ -27,7 +27,8 @@
 .scala_dependencies
 .settings
 /lib/
-project
+project/project
+project/target
 conf/*.cmd
 conf/*.conf
 conf/*.properties
