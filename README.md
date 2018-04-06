@@ -78,7 +78,7 @@ spark users can help us in finding what is missing here by raising challenging t
 Using the sparklens package.
 
 ```
---packages com.qubole:sparklens:0.1.2-s_2.11
+--packages qubole:sparklens:0.1.2-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
