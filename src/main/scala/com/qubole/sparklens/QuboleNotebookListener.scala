@@ -16,6 +16,8 @@
 */
 package com.qubole.sparklens
 
+import java.io.PrintStream
+
 import com.qubole.sparklens.analyzer.{AppAnalyzer, EfficiencyStatisticsAnalyzer, ExecutorWallclockAnalyzer, StageSkewAnalyzer}
 import com.qubole.sparklens.common.AppContext
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan}
@@ -135,7 +137,7 @@ class QuboleNotebookListener(sparkConf: SparkConf) extends QuboleJobListener(spa
       } catch {
         case e:Throwable => {
           println(s"Failed in Analyzer ${x.getClass.getSimpleName}")
-          e.printStackTrace()
+          e.printStackTrace(new PrintStream(System.out))
         }
       }
     })
