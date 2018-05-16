@@ -15,6 +15,10 @@ spAppendScalaVersion := true
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
+excludeDependencies ++= Seq(
+  SbtExclusionRule("org.scalatest", "scalatest")
+)
+
 testOptions in Test += Tests.Argument("-oF")
 
 scalacOptions ++= Seq("-target:jvm-1.7")
