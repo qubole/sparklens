@@ -14,8 +14,6 @@ spAppendScalaVersion := true
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
 
-
-
 testOptions in Test += Tests.Argument("-oF")
 
 scalacOptions ++= Seq("-target:jvm-1.7")
