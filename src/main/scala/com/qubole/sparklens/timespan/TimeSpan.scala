@@ -16,6 +16,11 @@
 */
 package com.qubole.sparklens.timespan
 
+import java.util
+
+import com.google.gson.JsonObject
+import com.qubole.sparklens.common.AggregateMetrics
+
 /*
  * We will look at the application as a sequence of timeSpans
  */
@@ -38,5 +43,15 @@ trait TimeSpan  {
     } else {
       None
     }
+  }
+  def getJavaMap(): util.Map[String, _ <: Any]
+
+  def getStartEndTime(): Map[String, Long] = {
+    Map("startTime" -> startTime, "endTime" -> endTime)
+  }
+
+  def addStartEnd(json: JsonObject): Unit = {
+    this.startTime = json.get("startTime").getAsLong
+    this.endTime = json.get("endTime").getAsLong
   }
 }

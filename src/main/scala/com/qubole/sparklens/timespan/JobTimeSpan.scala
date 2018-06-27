@@ -17,7 +17,10 @@
 
 package com.qubole.sparklens.timespan
 
-import com.qubole.sparklens.common.AggregateMetrics
+import java.util
+
+import com.google.gson.JsonObject
+import com.qubole.sparklens.common.{AggregateMetrics, AppContext}
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
 
@@ -34,8 +37,8 @@ import scala.collection._
 */
 
 class JobTimeSpan(val jobID: Long) extends TimeSpan {
-  val jobMetrics = new AggregateMetrics()
-  val stageMap = new mutable.HashMap[Int, StageTimeSpan]()
+  var jobMetrics = new AggregateMetrics()
+  var stageMap = new mutable.HashMap[Int, StageTimeSpan]()
 
   def addStage(stage: StageTimeSpan): Unit = {
     stageMap (stage.stageID) = stage
@@ -78,5 +81,30 @@ class JobTimeSpan(val jobID: Long) extends TimeSpan {
         stageData._1.map(x => criticalTime(x, data)).max
       }
     }
+  }
+
+  override def getJavaMap(): util.Map[String, _ <: Any] = {
+    import scala.collection.JavaConverters._
+    (Map(
+      "jobID" -> jobID,
+      "jobMetrics" -> jobMetrics.getJavaMap(),
+      "stageMap" -> AppContext.convertMapToJavaMap(stageMap)) ++ super.getStartEndTime()).asJava
+  }
+}
+
+object JobTimeSpan {
+  def getTimeSpan(json: JsonObject): mutable.HashMap[Long, JobTimeSpan] = {
+    val map = new mutable.HashMap[Long, JobTimeSpan]
+    import scala.collection.JavaConverters._
+    for (elem <- json.entrySet().asScala) {
+      val value = elem.getValue.getAsJsonObject
+      val timeSpan = new JobTimeSpan(value.get("jobID").getAsLong)
+      timeSpan.jobMetrics = AggregateMetrics.getAggregateMetrics(value.get("jobMetrics")
+        .getAsJsonObject)
+      timeSpan.stageMap = StageTimeSpan.getTimeSpan(value.get("stageMap").getAsJsonObject)
+      timeSpan.addStartEnd(value)
+      map.put(elem.getKey.toLong, timeSpan)
+    }
+    map
   }
 }

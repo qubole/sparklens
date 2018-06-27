@@ -16,7 +16,8 @@
 */
 package com.qubole.sparklens.common
 
-import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
+import com.google.gson.{Gson, GsonBuilder, JsonElement, JsonObject}
+import com.qubole.sparklens.timespan._
 
 import scala.collection.mutable
 
@@ -45,5 +46,55 @@ case class AppContext(appInfo:        ApplicationInfo,
       stageIDToJobID)
   }
 
+  override def toString(): String = {
+    import scala.collection.JavaConverters._
+
+    val map = Map(
+      "appInfo" -> appInfo,
+      "appMetrics" -> appMetrics.getJavaMap(),
+      "hostMap" -> AppContext.convertMapToJavaMap(hostMap),
+      "executorMap" -> AppContext.convertMapToJavaMap(executorMap),
+      "jobMap" -> AppContext.convertMapToJavaMap(jobMap),
+      "stageMap" -> AppContext.convertMapToJavaMap(stageMap),
+      "stageIDToJobID" -> stageIDToJobID.asJava
+    ).asJava
+    new GsonBuilder().setPrettyPrinting().create().toJson(map)
+  }
+
+
+}
+
+object AppContext {
+
+  def convertMapToJavaMap(map: mutable.HashMap[_ <: Any, _ <: TimeSpan]):
+    java.util.Map[String, Any] = {
+
+    import scala.collection.JavaConverters._
+    val newMap = new mutable.HashMap[String, Any]
+    for ((k, v) <- map) newMap.put(k.toString, v.getJavaMap())
+    newMap.asJava
+  }
+
+  def getContext(json: JsonObject): AppContext = {
+    new AppContext(
+      ApplicationInfo.getObject(json.get("appInfo").getAsJsonObject),
+      AggregateMetrics.getAggregateMetrics(json.get("appMetrics").getAsJsonObject),
+      HostTimeSpan.getTimeSpan(json.get("hostMap").getAsJsonObject),
+      ExecutorTimeSpan.getTimeSpan(json.get("executorMap").getAsJsonObject),
+      JobTimeSpan.getTimeSpan(json.get("jobMap").getAsJsonObject),
+      StageTimeSpan.getTimeSpan(json.get("stageMap").getAsJsonObject),
+      getJobToStageMap(json.get("stageIDToJobID").getAsJsonObject)
+    )
+}
+
+  private def getJobToStageMap(json: JsonObject): mutable.HashMap[Int, Long] = {
+    import scala.collection.JavaConverters._
+
+    val map = new mutable.HashMap[Int, Long]()
+    for (ele <- json.entrySet().asScala) {
+      map.put(ele.getKey.toInt, ele.getValue.getAsLong)
+    }
+    map
+  }
 }
 

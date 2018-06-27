@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit
 
 import com.qubole.sparklens.common.AppContext
 
+import scala.collection.mutable.ListBuffer
+
 /*
  * Interface for creating new Analyzers
  */
@@ -69,4 +71,32 @@ trait AppAnalyzer {
       sb.append(x)
     }
   }
+}
+
+object AppAnalyzer {
+  def startAnalyzers(appContext: AppContext): Unit = {
+    val list = new ListBuffer[AppAnalyzer]
+    list += new SimpleAppAnalyzer
+    list += new HostTimelineAnalyzer
+    list += new ExecutorTimelineAnalyzer
+    list += new AppTimelineAnalyzer
+    list += new JobOverlapAnalyzer
+    list += new EfficiencyStatisticsAnalyzer
+    list += new ExecutorWallclockAnalyzer
+    list += new StageSkewAnalyzer
+
+
+    list.foreach( x => {
+      try {
+        val output = x.analyze(appContext)
+        println(output)
+      } catch {
+        case e:Throwable => {
+          println(s"Failed in Analyzer ${x.getClass.getSimpleName}")
+          e.printStackTrace()
+        }
+      }
+    })
+  }
+
 }

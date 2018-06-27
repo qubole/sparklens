@@ -16,6 +16,25 @@
 */
 package com.qubole.sparklens.common
 
+import com.google.gson.{Gson, JsonObject}
+
 case class ApplicationInfo (var applicationID:String = "NA",
                             var startTime:Long = 0L,
-                            var endTime:Long = 0L)
+                            var endTime:Long = 0L) {
+  override def toString(): String = {
+    import scala.collection.JavaConverters._
+
+    Map("applicationID" -> applicationID, "startTime" -> startTime, "endTime" -> endTime).asJava
+      .toString
+  }
+}
+
+object ApplicationInfo {
+
+  def getObject(appInfo: JsonObject): ApplicationInfo = {
+    ApplicationInfo(
+      appInfo.get("applicationID").getAsString,
+      appInfo.get("startTime").getAsLong,
+      appInfo.get("endTime").getAsLong)
+  }
+}

@@ -19,6 +19,7 @@ package com.qubole.sparklens.common
 
 import java.util.Locale
 
+import com.google.gson.{Gson, JsonObject}
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
 
@@ -35,13 +36,35 @@ class AggregateValue {
   var max:      Long   = Long.MinValue
   var mean:     Double = 0.0
   var variance: Double = 0.0
+
+  override def toString(): String = {
+    s"""{
+       | "value": ${value},
+       | "min": ${min},
+       | "max": ${max},
+       | "mean": ${mean},
+       | "variance": ${variance}
+       }""".stripMargin
+  }
+}
+
+object AggregateValue {
+  def getValue(json: JsonObject): AggregateValue = {
+    val value = new AggregateValue
+    value.value = json.get("value").getAsLong
+    value.min = json.get("min").getAsLong
+    value.max = json.get("max").getAsLong
+    value.mean = json.get("mean").getAsDouble
+    value.variance = json.get("variance").getAsDouble
+    value
+  }
 }
 
 class AggregateMetrics() {
   var count = 0L
   val map = new mutable.HashMap[AggregateMetrics.Metric, AggregateValue]()
-  val formatterMap = new mutable.HashMap[AggregateMetrics.Metric, ((AggregateMetrics.Metric, AggregateValue), mutable.StringBuilder) => Unit]()
-  formatterMap(AggregateMetrics.shuffleWriteTime) = formatNanoTime
+  @transient val formatterMap = new mutable.HashMap[AggregateMetrics.Metric, ((AggregateMetrics
+  .Metric, AggregateValue), mutable.StringBuilder) => Unit]()
   formatterMap(AggregateMetrics.shuffleWriteBytesWritten) = formatBytes
   formatterMap(AggregateMetrics.shuffleWriteRecordsWritten) = formatRecords
   formatterMap(AggregateMetrics.shuffleReadFetchWaitTime) = formatNanoTime
@@ -60,7 +83,7 @@ class AggregateMetrics() {
   formatterMap(AggregateMetrics.peakExecutionMemory)= formatBytes
   formatterMap(AggregateMetrics.taskDuration)= formatMillisTime
 
-  val numberFormatter = java.text.NumberFormat.getIntegerInstance
+  @transient val numberFormatter = java.text.NumberFormat.getIntegerInstance
 
   def bytesToString(size: Long): String = {
     val TB = 1L << 40
@@ -169,9 +192,20 @@ class AggregateMetrics() {
       formatterMap(x._1)(x, sb)
     })
   }
+
+  override def toString(): String = {
+    getJavaMap.toString
+  }
+
+  def getJavaMap():java.util.Map[String, Any] = {
+    import scala.collection.JavaConverters._
+
+    Map("count" -> count, "map" -> map.asJava).asJava
+  }
 }
 
 object AggregateMetrics extends Enumeration {
+
   type Metric = Value
   val shuffleWriteTime,
   shuffleWriteBytesWritten,
@@ -192,8 +226,20 @@ object AggregateMetrics extends Enumeration {
   peakExecutionMemory,
   taskDuration
   = Value
-}
 
+  def getAggregateMetrics(json: JsonObject): AggregateMetrics = {
+    val metrics = new AggregateMetrics()
+    metrics.count = json.get("count").getAsInt
+    val map = json.get("map").getAsJsonObject
+    import scala.collection.JavaConverters._
+
+    for (elem <- map.entrySet().asScala) {
+      metrics.map.put(withName(elem.getKey), AggregateValue.getValue(elem.getValue.getAsJsonObject))
+    }
+    metrics
+  }
+
+}
 
 
 

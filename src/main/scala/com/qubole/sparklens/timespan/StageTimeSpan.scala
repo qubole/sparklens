@@ -16,6 +16,9 @@
 */
 package com.qubole.sparklens.timespan
 
+import java.util
+
+import com.google.gson.{Gson, JsonObject}
 import com.qubole.sparklens.common.AggregateMetrics
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
@@ -27,8 +30,8 @@ This keeps track of data per stage
 */
 
 class StageTimeSpan(val stageID: Int, numberOfTasks: Long) extends TimeSpan {
-  val stageMetrics  = new AggregateMetrics()
-  val tempTaskTimes = new mutable.ListBuffer[( Long, Long, Long)]
+  var stageMetrics  = new AggregateMetrics()
+  var tempTaskTimes = new mutable.ListBuffer[( Long, Long, Long)]
   var minTaskLaunchTime = Long.MaxValue
   var maxTaskFinishTime = 0L
   var parentStageIDs:Seq[Int] = null
@@ -90,4 +93,52 @@ class StageTimeSpan(val stageID: Int, numberOfTasks: Long) extends TimeSpan {
      */
     tempTaskTimes.clear()
   }
+
+  override def getJavaMap(): util.Map[String, _ <: Any] = {
+    import scala.collection.JavaConverters._
+    (Map(
+      "stageID" -> stageID,
+      "numberOfTasks" -> numberOfTasks,
+      "stageMetrics" -> stageMetrics.getJavaMap(),
+      "minTaskLaunchTime" -> minTaskLaunchTime,
+      "maxTaskFinishTime" -> maxTaskFinishTime,
+      "parentStageIDs" -> parentStageIDs.mkString("[", ",", "]"),
+      "taskExecutionTimes" -> taskExecutionTimes.mkString("[", ",", "]"),
+      "taskPeakMemoryUsage" -> taskPeakMemoryUsage.mkString("[", ",", "]")
+    ) ++ super.getStartEndTime()).asJava
+  }
+}
+
+object StageTimeSpan {
+
+  private val gson = new Gson()
+
+  def getTimeSpan(json: JsonObject): mutable.HashMap[Int, StageTimeSpan] = {
+    val map = new mutable.HashMap[Int, StageTimeSpan]
+    import scala.collection.JavaConverters._
+    for (elem <- json.entrySet().asScala) {
+      val value = elem.getValue.getAsJsonObject
+      val timeSpan = new StageTimeSpan(
+        value.get("stageID").getAsInt,
+        value.get("numberOfTasks").getAsLong
+      )
+      timeSpan.stageMetrics = AggregateMetrics.getAggregateMetrics(value.get("stageMetrics")
+        .getAsJsonObject)
+      timeSpan.minTaskLaunchTime = value.get("minTaskLaunchTime").getAsLong
+      timeSpan.maxTaskFinishTime = value.get("maxTaskFinishTime").getAsLong
+
+      timeSpan.parentStageIDs = gson.fromJson(value.get("parentStageIDs").getAsString,
+        classOf[java.util.List[Double]]).asScala.map(_.toInt)
+      timeSpan.taskExecutionTimes = gson.fromJson(value.get("taskExecutionTimes").getAsString,
+        classOf[java.util.List[Double]]).asScala.map(_.toInt).toArray
+      timeSpan.taskPeakMemoryUsage = gson.fromJson(value.get("taskPeakMemoryUsage").getAsString,
+        classOf[java.util.List[Double]]).asScala.map(_.toLong).toArray
+
+      timeSpan.addStartEnd(value)
+
+      map.put(elem.getKey.toInt, timeSpan)
+    }
+    map
+  }
+
 }

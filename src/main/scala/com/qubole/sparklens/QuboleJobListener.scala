@@ -17,9 +17,13 @@
 
 package com.qubole.sparklens
 
+import java.net.URI
+
 import com.qubole.sparklens.analyzer._
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkConf
 import org.apache.spark.scheduler._
 
@@ -125,7 +129,15 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     }
   }
 
-
+  private[this] def dumpData(appContext: AppContext): Unit = {
+    val dumpDir = getDumpDirectory(sparkConf)
+    println(s"Dumping sparkLens data to ${dumpDir}")
+    val fs = FileSystem.get(new URI(dumpDir), new Configuration())
+    val stream = fs.create(new Path(s"${dumpDir}/${appInfo.applicationID}.sparklens.json"))
+    val jsonString = appContext.toString
+    stream.writeBytes(jsonString)
+    stream.close()
+  }
 
   override def onApplicationStart(applicationStart: SparkListenerApplicationStart): Unit = {
     //println(s"Application ${applicationStart.appId} started at ${applicationStart.time}")
@@ -138,36 +150,25 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     //println(s"Application ${appInfo.applicationID} ended at ${applicationEnd.time}")
     appInfo.endTime = applicationEnd.time
 
-    val list = new ListBuffer[AppAnalyzer]
-    list += new SimpleAppAnalyzer
-    list += new HostTimelineAnalyzer
-    list += new ExecutorTimelineAnalyzer
-    list += new AppTimelineAnalyzer
-    list += new JobOverlapAnalyzer
-    list += new EfficiencyStatisticsAnalyzer
-    list += new ExecutorWallclockAnalyzer
-    list += new StageSkewAnalyzer
-
     val appContext = new AppContext(appInfo,
-                                    appMetrics,
-                                    hostMap,
-                                    executorMap,
-                                    jobMap,
-                                    stageMap,
-                                    stageIDToJobID)
-    list.foreach( x => {
-      try {
-        val output = x.analyze(appContext)
-        println(output)
-      } catch {
-        case e:Throwable => {
-          println(s"Failed in Analyzer ${x.getClass.getSimpleName}")
-          e.printStackTrace()
-        }
-      }
-    })
-  }
+      appMetrics,
+      hostMap,
+      executorMap,
+      jobMap,
+      stageMap,
+      stageIDToJobID)
 
+    asyncReportingEnabled(sparkConf) match {
+      case true => {
+        println("Dumping sparklens data.")
+        dumpData(appContext)
+      }
+      case false => {
+        if (dumpDataEnabled(sparkConf)) dumpData(appContext)
+        AppAnalyzer.startAnalyzers(appContext)
+      }
+    }
+  }
   override def onExecutorAdded(executorAdded: SparkListenerExecutorAdded): Unit = {
     val executorTimeSpan = executorMap.get(executorAdded.executorId)
     if (!executorTimeSpan.isDefined) {

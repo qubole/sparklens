@@ -17,13 +17,18 @@
 
 package com.qubole.sparklens.timespan
 
+import java.util
+
+import com.google.gson.JsonObject
 import com.qubole.sparklens.common.AggregateMetrics
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
 
+import scala.collection.mutable
+
 
 class HostTimeSpan(val hostID: String) extends TimeSpan {
-  val hostMetrics = new AggregateMetrics()
+  var hostMetrics = new AggregateMetrics()
 
 /*
 We don't get any event when host is lost.
@@ -35,5 +40,27 @@ TODO: may be mark all host end time when execution is stopped
 
   def updateAggregateTaskMetrics (taskMetrics: TaskMetrics, taskInfo: TaskInfo): Unit = {
     hostMetrics.update(taskMetrics, taskInfo)
+  }
+  override def getJavaMap(): java.util.Map[String, _ <: Any] = {
+    import scala.collection.JavaConverters._
+    (Map("hostID" -> hostID, "hostMetrics" -> hostMetrics.getJavaMap) ++ super.getStartEndTime())
+      .asJava
+  }
+
+}
+
+object HostTimeSpan {
+  def getTimeSpan(json: JsonObject): mutable.HashMap[String, HostTimeSpan] = {
+    val map = new mutable.HashMap[String, HostTimeSpan]
+    import scala.collection.JavaConverters._
+    for (elem <- json.entrySet().asScala) {
+      val value = elem.getValue.getAsJsonObject
+      val timeSpan = new HostTimeSpan(value.get("hostID").getAsString)
+      timeSpan.hostMetrics = AggregateMetrics.getAggregateMetrics(value.get("hostMetrics")
+        .getAsJsonObject)
+      timeSpan.addStartEnd(value)
+      map.put(elem.getKey, timeSpan)
+    }
+    map
   }
 }

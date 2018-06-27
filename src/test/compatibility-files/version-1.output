@@ -1,0 +1,14 @@
+Host localhost startTime 12:59:57:165 executors count 1
+At 12:59 executors added 1 & removed  0 currently available 1
+[      0                                      ||||||||||||||||||||||||||||||||||||||||   ]
+01:00:03:087      Stage 0 ended : maxTaskTime 30 taskCount 4
+ Driver WallClock Time    00m 10s   95.17%
+ Executor WallClock Time  00m 00s   4.83%
+Minimum possible time for the app based on the critical path (with infinite resources)   00m 10s
+Minimum possible time for the app with same executors, perfect parallelism and zero skew 00m 10s
+ Total cores available to the app 4
+ Executor OneCoreComputeHours used                       00h 00m        6.15%
+ OneCoreComputeHours wasted                              00h 00m        93.85%
+ OneCoreComputeHours wasted Driver               95.17%
+ Model Error       4%
+ Executor count     2  (200%) estimated time 00m 10s and estimated cluster utilization 0.16%
