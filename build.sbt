@@ -13,7 +13,6 @@ spAppendScalaVersion := true
 
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
 testOptions in Test += Tests.Argument("-oF")
 
