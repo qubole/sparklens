@@ -16,7 +16,7 @@
 */
 package com.qubole.sparklens.common
 
-import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
+import com.qubole.sparklens.timespan._
 
 import scala.collection.mutable
 
@@ -44,6 +44,9 @@ case class AppContext(appInfo:        ApplicationInfo,
                      x._2.endTime <= endTime),
       stageIDToJobID)
   }
+}
+
+object AppContext {
 
   def getMaxConcurrent[Span <: TimeSpan](map: mutable.HashMap[String, Span]): Long = {
 
