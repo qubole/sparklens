@@ -35,8 +35,13 @@ class EfficiencyStatisticsAnalyzer extends  AppAnalyzer {
       .map(x => (x.endTime - x.startTime))
       .sum
 
-    // sum of cores in all the executors
-    val totalCores = ac.executorMap.values.map(x => x.cores).sum
+    /* sum of cores in all the executors:
+     * There are executors coming up and going down.
+     * We are taking the max-number of executors running at any point of time, and
+     * multiplying it by num-cores per executor (assuming homogenous cluster)
+     */
+    val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap)
+    val totalCores = ac.executorMap.values.last.cores * maxExecutors
     // total compute millis available to the application
     val appComputeMillisAvailable = totalCores * appTotalTime
     val computeMillisFromExecutorLifetime = ac.executorMap.map( x => {

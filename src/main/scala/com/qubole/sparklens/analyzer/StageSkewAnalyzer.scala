@@ -67,7 +67,8 @@ class StageSkewAnalyzer extends  AppAnalyzer {
     out.println (s"Stage-ID   Wall    Task      Task     IO%    Input     Output    ----Shuffle-----    -WallClockTime-    --OneCoreComputeHours---   MaxTaskMem")
     out.println (s"          Clock%  Runtime%   Count                               Input  |  Output    Measured | Ideal   Available| Used%|Wasted%                                  ")
 
-    val totalCores  = ac.executorMap.values.map(x => x.cores).sum
+    val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap)
+    val totalCores = ac.executorMap.values.last.cores * maxExecutors
     val totalMillis = ac.stageMap.map(x =>
         x._2.duration().getOrElse(0L)
     ).sum * totalCores
@@ -100,7 +101,7 @@ class StageSkewAnalyzer extends  AppAnalyzer {
                        + sts.stageMetrics.map(AggregateMetrics.outputBytesWritten).value
                        + sts.stageMetrics.map(AggregateMetrics.shuffleWriteBytesWritten).value
                        + sts.stageMetrics.map(AggregateMetrics.shuffleReadBytesRead).value
-        val maxTaskMemory = sts.taskPeakMemoryUsage.take(executorCores).sum
+        val maxTaskMemory = sts.taskPeakMemoryUsage.take(executorCores.toInt).sum
       //val maxTaskMemoryUtilization = (maxTaskMemory*100)/executorMemory
         val IOPercent = (stageBytes* 100)/ totalIOBytes.toFloat
         val taskRuntimePercent = (sts.stageMetrics.map(AggregateMetrics.executorRuntime).value * 100)/totalRuntime.toFloat
@@ -119,7 +120,8 @@ class StageSkewAnalyzer extends  AppAnalyzer {
 
 
   def checkForGCOrShuffleService(ac: AppContext, out: mutable.StringBuilder): Unit = {
-    val totalCores  = ac.executorMap.values.map(x => x.cores).sum
+    val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap)
+    val totalCores = ac.executorMap.values.last.cores * maxExecutors
     val totalMillis = ac.stageMap.filter(x => x._2.endTime > 0).map(x => x._2.duration().get).sum * totalCores
     out.println (s" Stage-ID WallClock  OneCore       Task   PRatio    -----Task------   OIRatio  |* ShuffleWrite% ReadFetch%   GC%  *|")
     out.println (s"          Stage%     ComputeHours  Count            Skew   StageSkew                                                ")
