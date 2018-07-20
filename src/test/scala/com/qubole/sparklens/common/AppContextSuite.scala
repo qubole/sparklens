@@ -6,6 +6,41 @@ import org.scalatest.FunSuite
 class AppContextSuite extends FunSuite {
 
   test ("maximum concurrent executors at a time") {
+
+    /*
+     * We will generate this test case, and verify that we get "maximum" as the maximum
+     * concurrent executors.
+
+
+              ^
+              |
+              |
+     maximum ---                ** *
+              |                *   *
+              |              **     *
+              |             *       *
+              |           **         *
+              |          *           *
+              |         *             *
+        ^     |        *               *
+        |     |        *                *
+        |     |       *                 *
+  numExecutors|      *                   *
+              |     *                     *
+              |    *                       *
+              |    *                       *
+              |   *                         *
+              |  *                           *     *****         ****
+              | *                             *   *     *       *    *
+              |*                               *  *      *     *      *
+              |                                * *       *    *        * ..
+              +--------------------------------|---------------------------+
+              0                            (2 * maximum)
+
+                                          time ->
+      */
+
+
     val random = scala.util.Random
     val size = 100000 // 100,000 executors
 
