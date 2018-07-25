@@ -7,7 +7,7 @@ crossScalaVersions := Seq("2.10.6", "2.11.8")
 
 spName := "qubole/sparklens"
 
-sparkVersion := "2.0.0"
+sparkVersion := "2.3.1"
 
 spAppendScalaVersion := true
 
@@ -15,6 +15,8 @@ spAppendScalaVersion := true
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
 
 libraryDependencies +=  "org.apache.hadoop" % "hadoop-client" % "2.6.5" % "provided"
+
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
 testOptions in Test += Tests.Argument("-oF")
 
