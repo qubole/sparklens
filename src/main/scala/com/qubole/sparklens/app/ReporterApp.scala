@@ -50,7 +50,7 @@ object ReporterApp extends App {
 
     getSource match {
       case "sparklens" => reportFromSparklensDump(args(0))
-      case _ => reportFromEventHistory(args(0)) // event files
+      case _ => new EventHistoryReporter(args(0)) // event files
     }
   }
 

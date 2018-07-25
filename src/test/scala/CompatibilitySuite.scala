@@ -1,9 +1,9 @@
 import java.io.{ByteArrayOutputStream, FileNotFoundException, PrintStream}
 
+import com.qubole.sparklens.TestUtils
 import com.qubole.sparklens.app.ReporterApp
 import org.scalatest.FunSuite
 
-import scala.io.Source
 import scala.util.control.Breaks._
 
 class CompatibilitySuite extends FunSuite {
@@ -15,7 +15,7 @@ class CompatibilitySuite extends FunSuite {
       (1 to 100).foreach(x => { //run for the versions of sparklens output saved
         try {
 
-          val testInput = getFileContents(
+          val testInput = TestUtils.getFileContents(
             s"${System.getProperty("user.dir")}/src/test/compatibility-files/version-${x}.json")
 
           val testOut = new ByteArrayOutputStream()
@@ -24,7 +24,7 @@ class CompatibilitySuite extends FunSuite {
           }
           val testOutput = testOut.toString
 
-          val olderOutput = getFileContents(
+          val olderOutput = TestUtils.getFileContents(
             s"${System.getProperty("user.dir")}/src/test/compatibility-files/version-${x}.output")
 
           /* checking that some important lines of the actual run also appear on
@@ -39,10 +39,4 @@ class CompatibilitySuite extends FunSuite {
     }
   }
 
-  private def getFileContents(fileName: String): String = {
-    val bufferedSource = Source.fromFile(fileName)
-    val result = bufferedSource.mkString
-    bufferedSource.close
-    result
-  }
 }
