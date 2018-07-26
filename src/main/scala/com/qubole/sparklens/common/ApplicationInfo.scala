@@ -16,7 +16,8 @@
 */
 package com.qubole.sparklens.common
 
-import com.google.gson.{Gson, JsonObject}
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
 
 case class ApplicationInfo (var applicationID:String = "NA",
                             var startTime:Long = 0L,
@@ -31,10 +32,12 @@ case class ApplicationInfo (var applicationID:String = "NA",
 
 object ApplicationInfo {
 
-  def getObject(appInfo: JsonObject): ApplicationInfo = {
+  def getObject(jvalue: JValue): ApplicationInfo = {
+    implicit val formats = DefaultFormats
+
     ApplicationInfo(
-      appInfo.get("applicationID").getAsString,
-      appInfo.get("startTime").getAsLong,
-      appInfo.get("endTime").getAsLong)
+      (jvalue \ "applicationID").extract[String],
+      (jvalue \ "startTime").extract[Long],
+      (jvalue \ "endTime").extract[Long])
   }
 }

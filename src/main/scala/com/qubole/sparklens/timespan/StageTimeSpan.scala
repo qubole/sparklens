@@ -18,10 +18,12 @@ package com.qubole.sparklens.timespan
 
 import java.util
 
-import com.google.gson.{Gson, JsonObject}
 import com.qubole.sparklens.common.AggregateMetrics
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
+import org.json4s.jackson.JsonMethods.parse
 
 import scala.collection.mutable
 
@@ -111,33 +113,34 @@ class StageTimeSpan(val stageID: Int, numberOfTasks: Long) extends TimeSpan {
 
 object StageTimeSpan {
 
-  private val gson = new Gson()
+  def getTimeSpan(json: Map[String, JValue]): mutable.HashMap[Int, StageTimeSpan] = {
+    implicit val formats = DefaultFormats
 
-  def getTimeSpan(json: JsonObject): mutable.HashMap[Int, StageTimeSpan] = {
     val map = new mutable.HashMap[Int, StageTimeSpan]
-    import scala.collection.JavaConverters._
-    for (elem <- json.entrySet().asScala) {
-      val value = elem.getValue.getAsJsonObject
-      val timeSpan = new StageTimeSpan(
-        value.get("stageID").getAsInt,
-        value.get("numberOfTasks").getAsLong
-      )
-      timeSpan.stageMetrics = AggregateMetrics.getAggregateMetrics(value.get("stageMetrics")
-        .getAsJsonObject)
-      timeSpan.minTaskLaunchTime = value.get("minTaskLaunchTime").getAsLong
-      timeSpan.maxTaskFinishTime = value.get("maxTaskFinishTime").getAsLong
 
-      timeSpan.parentStageIDs = gson.fromJson(value.get("parentStageIDs").getAsString,
-        classOf[java.util.List[Double]]).asScala.map(_.toInt)
-      timeSpan.taskExecutionTimes = gson.fromJson(value.get("taskExecutionTimes").getAsString,
-        classOf[java.util.List[Double]]).asScala.map(_.toInt).toArray
-      timeSpan.taskPeakMemoryUsage = gson.fromJson(value.get("taskPeakMemoryUsage").getAsString,
-        classOf[java.util.List[Double]]).asScala.map(_.toLong).toArray
+    json.keys.map(key => {
+      val value = json.get(key).get
+      val timeSpan = new StageTimeSpan(
+        (value \ "stageID").extract[Int],
+        (value  \ "numberOfTasks").extract[Long]
+      )
+      timeSpan.stageMetrics = AggregateMetrics.getAggregateMetrics((value \ "stageMetrics")
+              .extract[JValue])
+      timeSpan.minTaskLaunchTime = (value \ "minTaskLaunchTime").extract[Long]
+      timeSpan.maxTaskFinishTime = (value \ "maxTaskFinishTime").extract[Long]
+
+
+      timeSpan.parentStageIDs = parse((value \ "parentStageIDs").extract[String]).extract[List[Int]]
+      timeSpan.taskExecutionTimes = parse((value \ "taskExecutionTimes").extract[String])
+        .extract[List[Int]].toArray
+
+      timeSpan.taskPeakMemoryUsage = parse((value \ "taskPeakMemoryUsage").extract[String])
+        .extract[List[Long]].toArray
 
       timeSpan.addStartEnd(value)
 
-      map.put(elem.getKey.toInt, timeSpan)
-    }
+      map.put(key.toInt, timeSpan)
+    })
     map
   }
 

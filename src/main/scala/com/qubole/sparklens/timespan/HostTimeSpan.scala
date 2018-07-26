@@ -23,6 +23,8 @@ import com.google.gson.JsonObject
 import com.qubole.sparklens.common.AggregateMetrics
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
 
 import scala.collection.mutable
 
@@ -50,17 +52,19 @@ TODO: may be mark all host end time when execution is stopped
 }
 
 object HostTimeSpan {
-  def getTimeSpan(json: JsonObject): mutable.HashMap[String, HostTimeSpan] = {
+  def getTimeSpan(json: Map[String, JValue]): mutable.HashMap[String, HostTimeSpan] = {
+    implicit val formats = DefaultFormats
     val map = new mutable.HashMap[String, HostTimeSpan]
-    import scala.collection.JavaConverters._
-    for (elem <- json.entrySet().asScala) {
-      val value = elem.getValue.getAsJsonObject
-      val timeSpan = new HostTimeSpan(value.get("hostID").getAsString)
-      timeSpan.hostMetrics = AggregateMetrics.getAggregateMetrics(value.get("hostMetrics")
-        .getAsJsonObject)
+
+    json.keys.map(key => {
+      val value = json.get(key).get
+      val timeSpan = new HostTimeSpan((value \ "hostID").extract[String])
+      timeSpan.hostMetrics = AggregateMetrics.getAggregateMetrics((value \ "hostMetrics")
+        .extract[JValue])
       timeSpan.addStartEnd(value)
-      map.put(elem.getKey, timeSpan)
-    }
+      map.put(key, timeSpan)
+    })
+
     map
   }
 }

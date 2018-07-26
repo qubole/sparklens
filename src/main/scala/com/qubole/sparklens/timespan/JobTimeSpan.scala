@@ -19,10 +19,11 @@ package com.qubole.sparklens.timespan
 
 import java.util
 
-import com.google.gson.JsonObject
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext}
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
 
 import scala.collection._
 
@@ -93,18 +94,22 @@ class JobTimeSpan(val jobID: Long) extends TimeSpan {
 }
 
 object JobTimeSpan {
-  def getTimeSpan(json: JsonObject): mutable.HashMap[Long, JobTimeSpan] = {
+  def getTimeSpan(json: Map[String, JValue]): mutable.HashMap[Long, JobTimeSpan] = {
+    implicit val formats = DefaultFormats
     val map = new mutable.HashMap[Long, JobTimeSpan]
-    import scala.collection.JavaConverters._
-    for (elem <- json.entrySet().asScala) {
-      val value = elem.getValue.getAsJsonObject
-      val timeSpan = new JobTimeSpan(value.get("jobID").getAsLong)
-      timeSpan.jobMetrics = AggregateMetrics.getAggregateMetrics(value.get("jobMetrics")
-        .getAsJsonObject)
-      timeSpan.stageMap = StageTimeSpan.getTimeSpan(value.get("stageMap").getAsJsonObject)
+
+    json.keys.map(key => {
+      val value = json.get(key).get.extract[JValue]
+      val timeSpan = new JobTimeSpan((value \ "jobID").extract[Long])
+
+      timeSpan.jobMetrics = AggregateMetrics.getAggregateMetrics((value \ "jobMetrics")
+              .extract[JValue])
+      timeSpan.stageMap = StageTimeSpan.getTimeSpan((value \ "stageMap").extract[
+        immutable.Map[String, JValue]])
       timeSpan.addStartEnd(value)
-      map.put(elem.getKey.toLong, timeSpan)
-    }
+      map.put(key.toLong, timeSpan)
+
+    })
     map
   }
 }

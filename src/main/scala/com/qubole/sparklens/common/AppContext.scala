@@ -16,8 +16,10 @@
 */
 package com.qubole.sparklens.common
 
-import com.google.gson.{Gson, GsonBuilder, JsonElement, JsonObject}
+import com.google.gson.{Gson, GsonBuilder}
 import com.qubole.sparklens.timespan._
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
 
 import scala.collection.mutable
 
@@ -75,25 +77,28 @@ object AppContext {
     newMap.asJava
   }
 
-  def getContext(json: JsonObject): AppContext = {
+  def getContext(json: JValue): AppContext = {
+
+    implicit val formats = DefaultFormats
+
     new AppContext(
-      ApplicationInfo.getObject(json.get("appInfo").getAsJsonObject),
-      AggregateMetrics.getAggregateMetrics(json.get("appMetrics").getAsJsonObject),
-      HostTimeSpan.getTimeSpan(json.get("hostMap").getAsJsonObject),
-      ExecutorTimeSpan.getTimeSpan(json.get("executorMap").getAsJsonObject),
-      JobTimeSpan.getTimeSpan(json.get("jobMap").getAsJsonObject),
-      StageTimeSpan.getTimeSpan(json.get("stageMap").getAsJsonObject),
-      getJobToStageMap(json.get("stageIDToJobID").getAsJsonObject)
+      ApplicationInfo.getObject((json \ "appInfo").extract[JValue]),
+      AggregateMetrics.getAggregateMetrics((json \ "appMetrics").extract[JValue]),
+      HostTimeSpan.getTimeSpan((json \ "hostMap").extract[Map[String, JValue]]),
+      ExecutorTimeSpan.getTimeSpan((json \ "executorMap").extract[Map[String, JValue]]),
+      JobTimeSpan.getTimeSpan((json \ "jobMap").extract[Map[String, JValue]]),
+      StageTimeSpan.getTimeSpan((json \ "stageMap").extract[Map[String, JValue]]),
+      getJobToStageMap((json \ "stageIDToJobID").extract[Map[Int, JValue]])
     )
 }
 
-  private def getJobToStageMap(json: JsonObject): mutable.HashMap[Int, Long] = {
-    import scala.collection.JavaConverters._
-
+  private def getJobToStageMap(json: Map[Int, JValue]): mutable.HashMap[Int, Long] = {
+    implicit val formats = DefaultFormats
     val map = new mutable.HashMap[Int, Long]()
-    for (ele <- json.entrySet().asScala) {
-      map.put(ele.getKey.toInt, ele.getValue.getAsLong)
-    }
+
+    json.keys.map(key => {
+      map.put(key, json.get(key).get.extract[Long])
+    })
     map
   }
 }

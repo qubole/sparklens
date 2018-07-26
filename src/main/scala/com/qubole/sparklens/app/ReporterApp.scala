@@ -2,13 +2,13 @@ package com.qubole.sparklens.app
 
 import java.net.URI
 
-import com.google.gson.{Gson, JsonObject}
 import com.qubole.sparklens.analyzer.AppAnalyzer
-import com.qubole.sparklens.app.ReporterApp.json
-import com.qubole.sparklens.common.{AppContext, ApplicationInfo}
+import com.qubole.sparklens.common.AppContext
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
-
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
+import org.json4s.jackson.JsonMethods.parse
 
 object ReporterApp extends App {
   checkArgs()
@@ -31,7 +31,9 @@ object ReporterApp extends App {
   }
 
   def startAnalysersFromString(json: String): Unit = {
-    val map = new Gson().fromJson(json, classOf[JsonObject])
+
+    implicit val formats = DefaultFormats
+    val map = parse(json).extract[JValue]
 
     val appContext = AppContext.getContext(map)
     AppAnalyzer.startAnalyzers(appContext)

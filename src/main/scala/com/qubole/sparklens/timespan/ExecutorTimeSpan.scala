@@ -19,10 +19,11 @@ package com.qubole.sparklens.timespan
 
 import java.util
 
-import com.google.gson.JsonObject
 import com.qubole.sparklens.common.AggregateMetrics
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
 
 import scala.collection.mutable
 
@@ -45,20 +46,23 @@ class ExecutorTimeSpan(val executorID: String,
 }
 
 object ExecutorTimeSpan {
-  def getTimeSpan(json: JsonObject): mutable.HashMap[String, ExecutorTimeSpan] = {
+  def getTimeSpan(json: Map[String, JValue]): mutable.HashMap[String, ExecutorTimeSpan] = {
+
+    implicit val formats = DefaultFormats
     val map = new mutable.HashMap[String, ExecutorTimeSpan]
-    import scala.collection.JavaConverters._
-    for (elem <- json.entrySet().asScala) {
-      val value = elem.getValue.getAsJsonObject
+
+    json.keys.map(key => {
+      val value = json.get(key).get
       val timeSpan = new ExecutorTimeSpan(
-        value.get("executorID").getAsString,
-        value.get("hostID").getAsString,
-        value.get("cores").getAsInt)
-      timeSpan.executorMetrics = AggregateMetrics.getAggregateMetrics(value.get("executorMetrics")
-        .getAsJsonObject)
+        (value \ "executorID").extract[String],
+        (value \ "hostID").extract[String],
+        (value \ "cores").extract[Int]
+      )
+      timeSpan.executorMetrics = AggregateMetrics.getAggregateMetrics((value
+              \ "executorMetrics").extract[JValue])
       timeSpan.addStartEnd(value)
-      map.put(elem.getKey, timeSpan)
-    }
+      map.put(key, timeSpan)
+    })
     map
   }
 }

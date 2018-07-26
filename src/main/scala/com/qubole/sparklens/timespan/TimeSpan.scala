@@ -20,6 +20,8 @@ import java.util
 
 import com.google.gson.JsonObject
 import com.qubole.sparklens.common.AggregateMetrics
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
 
 /*
  * We will look at the application as a sequence of timeSpans
@@ -50,8 +52,9 @@ trait TimeSpan  {
     Map("startTime" -> startTime, "endTime" -> endTime)
   }
 
-  def addStartEnd(json: JsonObject): Unit = {
-    this.startTime = json.get("startTime").getAsLong
-    this.endTime = json.get("endTime").getAsLong
+  def addStartEnd(json: JValue): Unit = {
+    implicit val formats = DefaultFormats
+    this.startTime = (json \ "startTime").extract[Long]
+    this.endTime = (json \ "endTime").extract[Long]
   }
 }

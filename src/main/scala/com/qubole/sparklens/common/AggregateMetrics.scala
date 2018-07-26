@@ -22,6 +22,8 @@ import java.util.Locale
 import com.google.gson.{Gson, JsonObject}
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
 
 import scala.collection.mutable
 
@@ -49,13 +51,15 @@ class AggregateValue {
 }
 
 object AggregateValue {
-  def getValue(json: JsonObject): AggregateValue = {
+  def getValue(json: JValue): AggregateValue = {
+    implicit val formats = DefaultFormats
+
     val value = new AggregateValue
-    value.value = json.get("value").getAsLong
-    value.min = json.get("min").getAsLong
-    value.max = json.get("max").getAsLong
-    value.mean = json.get("mean").getAsDouble
-    value.variance = json.get("variance").getAsDouble
+    value.value = (json  \ "value").extract[Long]
+    value.min = (json \ "min").extract[Long]
+    value.max = (json \ "max").extract[Long]
+    value.mean = (json \ "mean").extract[Double]
+    value.variance = (json \ "variance").extract[Double]
     value
   }
 }
@@ -227,15 +231,16 @@ object AggregateMetrics extends Enumeration {
   taskDuration
   = Value
 
-  def getAggregateMetrics(json: JsonObject): AggregateMetrics = {
-    val metrics = new AggregateMetrics()
-    metrics.count = json.get("count").getAsInt
-    val map = json.get("map").getAsJsonObject
-    import scala.collection.JavaConverters._
+  def getAggregateMetrics(json: JValue): AggregateMetrics = {
+    implicit val formats = DefaultFormats
 
-    for (elem <- map.entrySet().asScala) {
-      metrics.map.put(withName(elem.getKey), AggregateValue.getValue(elem.getValue.getAsJsonObject))
-    }
+    val metrics = new AggregateMetrics()
+    metrics.count = (json \ "count").extract[Int]
+    val map = (json \ "map").extract[Map[String, JValue]]
+
+    map.keys.foreach(key => metrics.map.put(withName(key),
+      AggregateValue.getValue(map.get(key).get)))
+
     metrics
   }
 
