@@ -16,7 +16,6 @@
 */
 package com.qubole.sparklens.timespan
 
-import java.util
 
 import com.qubole.sparklens.common.AggregateMetrics
 import org.apache.spark.executor.TaskMetrics
@@ -96,18 +95,19 @@ class StageTimeSpan(val stageID: Int, numberOfTasks: Long) extends TimeSpan {
     tempTaskTimes.clear()
   }
 
-  override def getJavaMap(): util.Map[String, _ <: Any] = {
-    import scala.collection.JavaConverters._
-    (Map(
+  override def getMap(): Map[String, _ <: Any] = {
+    implicit val formats = DefaultFormats
+
+    Map(
       "stageID" -> stageID,
       "numberOfTasks" -> numberOfTasks,
-      "stageMetrics" -> stageMetrics.getJavaMap(),
+      "stageMetrics" -> stageMetrics.getMap(),
       "minTaskLaunchTime" -> minTaskLaunchTime,
       "maxTaskFinishTime" -> maxTaskFinishTime,
       "parentStageIDs" -> parentStageIDs.mkString("[", ",", "]"),
       "taskExecutionTimes" -> taskExecutionTimes.mkString("[", ",", "]"),
       "taskPeakMemoryUsage" -> taskPeakMemoryUsage.mkString("[", ",", "]")
-    ) ++ super.getStartEndTime()).asJava
+    ) ++ super.getStartEndTime()
   }
 }
 

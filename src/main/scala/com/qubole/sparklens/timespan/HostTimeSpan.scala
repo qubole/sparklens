@@ -17,9 +17,6 @@
 
 package com.qubole.sparklens.timespan
 
-import java.util
-
-import com.google.gson.JsonObject
 import com.qubole.sparklens.common.AggregateMetrics
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
@@ -43,10 +40,9 @@ TODO: may be mark all host end time when execution is stopped
   def updateAggregateTaskMetrics (taskMetrics: TaskMetrics, taskInfo: TaskInfo): Unit = {
     hostMetrics.update(taskMetrics, taskInfo)
   }
-  override def getJavaMap(): java.util.Map[String, _ <: Any] = {
-    import scala.collection.JavaConverters._
-    (Map("hostID" -> hostID, "hostMetrics" -> hostMetrics.getJavaMap) ++ super.getStartEndTime())
-      .asJava
+  override def getMap(): Map[String, _ <: Any] = {
+    implicit val formats = DefaultFormats
+    Map("hostID" -> hostID, "hostMetrics" -> hostMetrics.getMap) ++ super.getStartEndTime()
   }
 
 }

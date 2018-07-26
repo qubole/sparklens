@@ -17,8 +17,6 @@
 
 package com.qubole.sparklens.timespan
 
-import java.util
-
 import com.qubole.sparklens.common.AggregateMetrics
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
@@ -26,8 +24,6 @@ import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
 
 import scala.collection.mutable
-
-
 
 class ExecutorTimeSpan(val executorID: String,
                        val hostID: String,
@@ -38,10 +34,11 @@ class ExecutorTimeSpan(val executorID: String,
     executorMetrics.update(taskMetrics, taskInfo)
   }
 
-  override def getJavaMap(): util.Map[String, _ <: Any] = {
-    import scala.collection.JavaConverters._
-    (Map("executorID" -> executorID, "hostID" -> hostID, "cores" -> cores, "executorMetrics" ->
-      executorMetrics.getJavaMap()) ++ super.getStartEndTime()).asJava
+  override def getMap(): Map[String, _ <: Any] = {
+    implicit val formats = DefaultFormats
+
+    Map("executorID" -> executorID, "hostID" -> hostID, "cores" -> cores, "executorMetrics" ->
+      executorMetrics.getMap()) ++ super.getStartEndTime()
   }
 }
 

@@ -16,10 +16,10 @@
 */
 package com.qubole.sparklens.common
 
-import com.google.gson.{Gson, GsonBuilder}
 import com.qubole.sparklens.timespan._
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
+import org.json4s.jackson.Serialization
 
 import scala.collection.mutable
 
@@ -49,18 +49,17 @@ case class AppContext(appInfo:        ApplicationInfo,
   }
 
   override def toString(): String = {
-    import scala.collection.JavaConverters._
-
+    implicit val formats = DefaultFormats
     val map = Map(
-      "appInfo" -> appInfo,
-      "appMetrics" -> appMetrics.getJavaMap(),
-      "hostMap" -> AppContext.convertMapToJavaMap(hostMap),
-      "executorMap" -> AppContext.convertMapToJavaMap(executorMap),
-      "jobMap" -> AppContext.convertMapToJavaMap(jobMap),
-      "stageMap" -> AppContext.convertMapToJavaMap(stageMap),
-      "stageIDToJobID" -> stageIDToJobID.asJava
-    ).asJava
-    new GsonBuilder().setPrettyPrinting().create().toJson(map)
+      "appInfo" -> appInfo.getMap(),
+      "appMetrics" -> appMetrics.getMap(),
+      "hostMap" -> AppContext.getMap(hostMap),
+      "executorMap" -> AppContext.getMap(executorMap),
+      "jobMap" -> AppContext.getMap(jobMap),
+      "stageMap" -> AppContext.getMap(stageMap),
+      "stageIDToJobID" -> stageIDToJobID
+    )
+    Serialization.writePretty(map)
   }
 
 
@@ -68,13 +67,14 @@ case class AppContext(appInfo:        ApplicationInfo,
 
 object AppContext {
 
-  def convertMapToJavaMap(map: mutable.HashMap[_ <: Any, _ <: TimeSpan]):
-    java.util.Map[String, Any] = {
 
-    import scala.collection.JavaConverters._
-    val newMap = new mutable.HashMap[String, Any]
-    for ((k, v) <- map) newMap.put(k.toString, v.getJavaMap())
-    newMap.asJava
+  def getMap[T](map: mutable.HashMap[T, _ <: TimeSpan]): Map[String, Any] = {
+
+    map.keys.last match {
+      case _: String | _: Long | _: Int =>
+        map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap
+      case _ => throw new RuntimeException("Unknown map key type")
+    }
   }
 
   def getContext(json: JValue): AppContext = {

@@ -17,15 +17,13 @@
 
 package com.qubole.sparklens.timespan
 
-import java.util
-
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext}
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
 
-import scala.collection._
+import scala.collection.{immutable, mutable}
 
 
 /*
@@ -72,7 +70,7 @@ class JobTimeSpan(val jobID: Long) extends TimeSpan {
   /*
   recursive function to compute critical time starting from the last stage
    */
-  private def criticalTime(stageID: Int, data: Map[Int, (Seq[Int], Long)]): Long = {
+  private def criticalTime(stageID: Int, data: mutable.HashMap[Int, (Seq[Int], Long)]): Long = {
     //Provide 0 value for
     val stageData = data.getOrElse(stageID, (List.empty[Int], 0L))
     stageData._2 + {
@@ -84,12 +82,13 @@ class JobTimeSpan(val jobID: Long) extends TimeSpan {
     }
   }
 
-  override def getJavaMap(): util.Map[String, _ <: Any] = {
-    import scala.collection.JavaConverters._
-    (Map(
+  override def getMap(): Map[String, _ <: Any] = {
+    implicit val formats = DefaultFormats
+
+    Map(
       "jobID" -> jobID,
-      "jobMetrics" -> jobMetrics.getJavaMap(),
-      "stageMap" -> AppContext.convertMapToJavaMap(stageMap)) ++ super.getStartEndTime()).asJava
+      "jobMetrics" -> jobMetrics.getMap,
+      "stageMap" -> AppContext.getMap(stageMap)) ++ super.getStartEndTime()
   }
 }
 

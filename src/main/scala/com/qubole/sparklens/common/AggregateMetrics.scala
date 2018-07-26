@@ -19,7 +19,6 @@ package com.qubole.sparklens.common
 
 import java.util.Locale
 
-import com.google.gson.{Gson, JsonObject}
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
 import org.json4s.DefaultFormats
@@ -47,6 +46,14 @@ class AggregateValue {
        | "mean": ${mean},
        | "variance": ${variance}
        }""".stripMargin
+  }
+
+  def getMap(): Map[String, Any] = {
+    Map("value" -> value,
+    "min" -> min,
+    "max" -> max,
+    "mean" -> mean,
+    "variance" -> variance)
   }
 }
 
@@ -197,18 +204,13 @@ class AggregateMetrics() {
     })
   }
 
-  override def toString(): String = {
-    getJavaMap.toString
-  }
-
-  def getJavaMap():java.util.Map[String, Any] = {
-    import scala.collection.JavaConverters._
-
-    Map("count" -> count, "map" -> map.asJava).asJava
+  def getMap(): Map[String, Any] = {
+    Map("count" -> count, "map" -> map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap)
   }
 }
 
 object AggregateMetrics extends Enumeration {
+  import org.json4s._
 
   type Metric = Value
   val shuffleWriteTime,

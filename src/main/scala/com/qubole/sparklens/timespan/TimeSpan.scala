@@ -16,10 +16,6 @@
 */
 package com.qubole.sparklens.timespan
 
-import java.util
-
-import com.google.gson.JsonObject
-import com.qubole.sparklens.common.AggregateMetrics
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
 
@@ -46,7 +42,7 @@ trait TimeSpan  {
       None
     }
   }
-  def getJavaMap(): util.Map[String, _ <: Any]
+  def getMap(): Map[String, _ <: Any]
 
   def getStartEndTime(): Map[String, Long] = {
     Map("startTime" -> startTime, "endTime" -> endTime)

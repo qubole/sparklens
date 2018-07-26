@@ -22,11 +22,10 @@ import org.json4s.JsonAST.JValue
 case class ApplicationInfo (var applicationID:String = "NA",
                             var startTime:Long = 0L,
                             var endTime:Long = 0L) {
-  override def toString(): String = {
-    import scala.collection.JavaConverters._
 
-    Map("applicationID" -> applicationID, "startTime" -> startTime, "endTime" -> endTime).asJava
-      .toString
+  def getMap(): Map[String, Any] = {
+    implicit val formats = DefaultFormats
+    Map("applicationID" -> applicationID, "startTime" -> startTime, "endTime" -> endTime)
   }
 }
 
