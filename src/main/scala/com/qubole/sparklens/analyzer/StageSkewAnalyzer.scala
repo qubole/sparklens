@@ -67,7 +67,7 @@ class StageSkewAnalyzer extends  AppAnalyzer {
     out.println (s"Stage-ID   Wall    Task      Task     IO%    Input     Output    ----Shuffle-----    -WallClockTime-    --OneCoreComputeHours---   MaxTaskMem")
     out.println (s"          Clock%  Runtime%   Count                               Input  |  Output    Measured | Ideal   Available| Used%|Wasted%                                  ")
 
-    val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap)
+    val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap, ac)
     val totalCores = ac.executorMap.values.last.cores * maxExecutors
     val totalMillis = ac.stageMap.map(x =>
         x._2.duration().getOrElse(0L)
@@ -120,7 +120,7 @@ class StageSkewAnalyzer extends  AppAnalyzer {
 
 
   def checkForGCOrShuffleService(ac: AppContext, out: mutable.StringBuilder): Unit = {
-    val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap)
+    val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap, ac)
     val totalCores = ac.executorMap.values.last.cores * maxExecutors
     val totalMillis = ac.stageMap.filter(x => x._2.endTime > 0).map(x => x._2.duration().get).sum * totalCores
     out.println (s" Stage-ID WallClock  OneCore       Task   PRatio    -----Task------   OIRatio  |* ShuffleWrite% ReadFetch%   GC%  *|")

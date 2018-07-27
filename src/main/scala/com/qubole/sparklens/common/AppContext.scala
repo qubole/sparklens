@@ -66,12 +66,15 @@ case class AppContext(appInfo:        ApplicationInfo,
 
 object AppContext {
 
-  def getMaxConcurrent[Span <: TimeSpan](map: mutable.HashMap[String, Span]): Long = {
+  def getMaxConcurrent[Span <: TimeSpan](map: mutable.HashMap[String, Span],
+                                         appContext: AppContext = null): Long = {
 
     // sort all start and end times on basis of timing
     val sorted = map.values.flatMap(timeSpan => {
       val correctedEndTime = if (timeSpan.endTime == 0) {
-        System.currentTimeMillis()
+        if (appContext == null) {
+          System.currentTimeMillis()
+        } else appContext.appInfo.endTime
       } else timeSpan.endTime
       Seq[(Long, Long)]((timeSpan.startTime, 1L), (correctedEndTime, -1L))
     }).toArray

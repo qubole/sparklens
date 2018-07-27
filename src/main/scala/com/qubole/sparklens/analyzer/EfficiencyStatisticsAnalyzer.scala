@@ -40,7 +40,7 @@ class EfficiencyStatisticsAnalyzer extends  AppAnalyzer {
      * We are taking the max-number of executors running at any point of time, and
      * multiplying it by num-cores per executor (assuming homogenous cluster)
      */
-    val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap)
+    val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap, ac)
     val totalCores = ac.executorMap.values.last.cores * maxExecutors
     // total compute millis available to the application
     val appComputeMillisAvailable = totalCores * appTotalTime
