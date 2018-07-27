@@ -16,7 +16,10 @@
 */
 package com.qubole.sparklens.common
 
-import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
+import com.qubole.sparklens.timespan._
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
+import org.json4s.jackson.Serialization
 
 import scala.collection.mutable
 
@@ -45,5 +48,58 @@ case class AppContext(appInfo:        ApplicationInfo,
       stageIDToJobID)
   }
 
+  override def toString(): String = {
+    implicit val formats = DefaultFormats
+    val map = Map(
+      "appInfo" -> appInfo.getMap(),
+      "appMetrics" -> appMetrics.getMap(),
+      "hostMap" -> AppContext.getMap(hostMap),
+      "executorMap" -> AppContext.getMap(executorMap),
+      "jobMap" -> AppContext.getMap(jobMap),
+      "stageMap" -> AppContext.getMap(stageMap),
+      "stageIDToJobID" -> stageIDToJobID
+    )
+    Serialization.writePretty(map)
+  }
+
+
+}
+
+object AppContext {
+
+
+  def getMap[T](map: mutable.HashMap[T, _ <: TimeSpan]): Map[String, Any] = {
+
+    map.keys.last match {
+      case _: String | _: Long | _: Int =>
+        map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap
+      case _ => throw new RuntimeException("Unknown map key type")
+    }
+  }
+
+  def getContext(json: JValue): AppContext = {
+
+    implicit val formats = DefaultFormats
+
+    new AppContext(
+      ApplicationInfo.getObject((json \ "appInfo").extract[JValue]),
+      AggregateMetrics.getAggregateMetrics((json \ "appMetrics").extract[JValue]),
+      HostTimeSpan.getTimeSpan((json \ "hostMap").extract[Map[String, JValue]]),
+      ExecutorTimeSpan.getTimeSpan((json \ "executorMap").extract[Map[String, JValue]]),
+      JobTimeSpan.getTimeSpan((json \ "jobMap").extract[Map[String, JValue]]),
+      StageTimeSpan.getTimeSpan((json \ "stageMap").extract[Map[String, JValue]]),
+      getJobToStageMap((json \ "stageIDToJobID").extract[Map[Int, JValue]])
+    )
+}
+
+  private def getJobToStageMap(json: Map[Int, JValue]): mutable.HashMap[Int, Long] = {
+    implicit val formats = DefaultFormats
+    val map = new mutable.HashMap[Int, Long]()
+
+    json.keys.map(key => {
+      map.put(key, json.get(key).get.extract[Long])
+    })
+    map
+  }
 }
 

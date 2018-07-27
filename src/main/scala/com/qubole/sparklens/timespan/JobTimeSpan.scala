@@ -17,11 +17,13 @@
 
 package com.qubole.sparklens.timespan
 
-import com.qubole.sparklens.common.AggregateMetrics
+import com.qubole.sparklens.common.{AggregateMetrics, AppContext}
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
 
-import scala.collection._
+import scala.collection.{immutable, mutable}
 
 
 /*
@@ -34,8 +36,8 @@ import scala.collection._
 */
 
 class JobTimeSpan(val jobID: Long) extends TimeSpan {
-  val jobMetrics = new AggregateMetrics()
-  val stageMap = new mutable.HashMap[Int, StageTimeSpan]()
+  var jobMetrics = new AggregateMetrics()
+  var stageMap = new mutable.HashMap[Int, StageTimeSpan]()
 
   def addStage(stage: StageTimeSpan): Unit = {
     stageMap (stage.stageID) = stage
@@ -68,7 +70,7 @@ class JobTimeSpan(val jobID: Long) extends TimeSpan {
   /*
   recursive function to compute critical time starting from the last stage
    */
-  private def criticalTime(stageID: Int, data: Map[Int, (Seq[Int], Long)]): Long = {
+  private def criticalTime(stageID: Int, data: mutable.HashMap[Int, (Seq[Int], Long)]): Long = {
     //Provide 0 value for
     val stageData = data.getOrElse(stageID, (List.empty[Int], 0L))
     stageData._2 + {
@@ -78,5 +80,35 @@ class JobTimeSpan(val jobID: Long) extends TimeSpan {
         stageData._1.map(x => criticalTime(x, data)).max
       }
     }
+  }
+
+  override def getMap(): Map[String, _ <: Any] = {
+    implicit val formats = DefaultFormats
+
+    Map(
+      "jobID" -> jobID,
+      "jobMetrics" -> jobMetrics.getMap,
+      "stageMap" -> AppContext.getMap(stageMap)) ++ super.getStartEndTime()
+  }
+}
+
+object JobTimeSpan {
+  def getTimeSpan(json: Map[String, JValue]): mutable.HashMap[Long, JobTimeSpan] = {
+    implicit val formats = DefaultFormats
+    val map = new mutable.HashMap[Long, JobTimeSpan]
+
+    json.keys.map(key => {
+      val value = json.get(key).get.extract[JValue]
+      val timeSpan = new JobTimeSpan((value \ "jobID").extract[Long])
+
+      timeSpan.jobMetrics = AggregateMetrics.getAggregateMetrics((value \ "jobMetrics")
+              .extract[JValue])
+      timeSpan.stageMap = StageTimeSpan.getTimeSpan((value \ "stageMap").extract[
+        immutable.Map[String, JValue]])
+      timeSpan.addStartEnd(value)
+      map.put(key.toLong, timeSpan)
+
+    })
+    map
   }
 }

@@ -14,6 +14,8 @@ spAppendScalaVersion := true
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
 
+libraryDependencies +=  "org.apache.hadoop" % "hadoop-client" % "2.6.5" % "provided"
+
 testOptions in Test += Tests.Argument("-oF")
 
 scalacOptions ++= Seq("-target:jvm-1.7")
