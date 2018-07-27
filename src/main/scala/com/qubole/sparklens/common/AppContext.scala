@@ -47,6 +47,21 @@ case class AppContext(appInfo:        ApplicationInfo,
                      x._2.endTime <= endTime),
       stageIDToJobID)
   }
+
+  override def toString(): String = {
+    implicit val formats = DefaultFormats
+    val map = Map(
+      "appInfo" -> appInfo.getMap(),
+      "appMetrics" -> appMetrics.getMap(),
+      "hostMap" -> AppContext.getMap(hostMap),
+      "executorMap" -> AppContext.getMap(executorMap),
+      "jobMap" -> AppContext.getMap(jobMap),
+      "stageMap" -> AppContext.getMap(stageMap),
+      "stageIDToJobID" -> stageIDToJobID
+    )
+    Serialization.writePretty(map)
+  }
+
 }
 
 object AppContext {
@@ -75,20 +90,6 @@ object AppContext {
       maxConcurrent = math.max(maxConcurrent, count)
     })
     maxConcurrent
-  }
-
-  override def toString(): String = {
-    implicit val formats = DefaultFormats
-    val map = Map(
-      "appInfo" -> appInfo.getMap(),
-      "appMetrics" -> appMetrics.getMap(),
-      "hostMap" -> AppContext.getMap(hostMap),
-      "executorMap" -> AppContext.getMap(executorMap),
-      "jobMap" -> AppContext.getMap(jobMap),
-      "stageMap" -> AppContext.getMap(stageMap),
-      "stageIDToJobID" -> stageIDToJobID
-    )
-    Serialization.writePretty(map)
   }
 
   def getMap[T](map: mutable.HashMap[T, _ <: TimeSpan]): Map[String, Any] = {
