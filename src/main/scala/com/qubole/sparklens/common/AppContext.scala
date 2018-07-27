@@ -91,12 +91,6 @@ object AppContext {
     Serialization.writePretty(map)
   }
 
-
-}
-
-object AppContext {
-
-
   def getMap[T](map: mutable.HashMap[T, _ <: TimeSpan]): Map[String, Any] = {
 
     map.keys.last match {
