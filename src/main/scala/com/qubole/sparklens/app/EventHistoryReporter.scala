@@ -16,19 +16,19 @@ import org.xerial.snappy.SnappyInputStream
 
 class EventHistoryReporter(file: String) {
 
+  // This is using reflection in spark-2.0.0 ReplayListenerBus
   val busKlass = Class.forName("org.apache.spark.scheduler.ReplayListenerBus")
   val bus = busKlass.newInstance()
-  val addListenerMethod = busKlass.getMethod("addListener", classOf[java.lang.Object])
+  val addListenerMethod = busKlass.getMethod("addListener", classOf[Object])
   val conf = new SparkConf()
     .set("spark.sparklens.simulation.async", "false")
     .set("spark.sparklens.dump.data", "false")
   val listener = new QuboleJobListener(conf)
   val replayMethod = busKlass.getMethod("replay", classOf[InputStream], classOf[String],
-    classOf[Boolean], classOf[(String) => Boolean])
+    classOf[Boolean])
 
   addListenerMethod.invoke(bus, listener)
-  replayMethod.invoke(bus, getDecodedInputStream(file, conf), file, boolean2Boolean(false),
-    getFilter _)
+  replayMethod.invoke(bus, getDecodedInputStream(file, conf), file, boolean2Boolean(false))
 
   // Borrowed from CompressionCodecs in spark
   private def getDecodedInputStream(file: String, conf: SparkConf): InputStream = {
