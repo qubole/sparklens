@@ -16,6 +16,9 @@
 */
 package com.qubole.sparklens.timespan
 
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
+
 /*
  * We will look at the application as a sequence of timeSpans
  */
@@ -38,5 +41,16 @@ trait TimeSpan  {
     } else {
       None
     }
+  }
+  def getMap(): Map[String, _ <: Any]
+
+  def getStartEndTime(): Map[String, Long] = {
+    Map("startTime" -> startTime, "endTime" -> endTime)
+  }
+
+  def addStartEnd(json: JValue): Unit = {
+    implicit val formats = DefaultFormats
+    this.startTime = (json \ "startTime").extract[Long]
+    this.endTime = (json \ "endTime").extract[Long]
   }
 }

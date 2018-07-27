@@ -21,6 +21,8 @@ import java.util.Locale
 
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
+import org.json4s.DefaultFormats
+import org.json4s.JsonAST.JValue
 
 import scala.collection.mutable
 
@@ -35,13 +37,45 @@ class AggregateValue {
   var max:      Long   = Long.MinValue
   var mean:     Double = 0.0
   var variance: Double = 0.0
+
+  override def toString(): String = {
+    s"""{
+       | "value": ${value},
+       | "min": ${min},
+       | "max": ${max},
+       | "mean": ${mean},
+       | "variance": ${variance}
+       }""".stripMargin
+  }
+
+  def getMap(): Map[String, Any] = {
+    Map("value" -> value,
+    "min" -> min,
+    "max" -> max,
+    "mean" -> mean,
+    "variance" -> variance)
+  }
+}
+
+object AggregateValue {
+  def getValue(json: JValue): AggregateValue = {
+    implicit val formats = DefaultFormats
+
+    val value = new AggregateValue
+    value.value = (json  \ "value").extract[Long]
+    value.min = (json \ "min").extract[Long]
+    value.max = (json \ "max").extract[Long]
+    value.mean = (json \ "mean").extract[Double]
+    value.variance = (json \ "variance").extract[Double]
+    value
+  }
 }
 
 class AggregateMetrics() {
   var count = 0L
   val map = new mutable.HashMap[AggregateMetrics.Metric, AggregateValue]()
-  val formatterMap = new mutable.HashMap[AggregateMetrics.Metric, ((AggregateMetrics.Metric, AggregateValue), mutable.StringBuilder) => Unit]()
-  formatterMap(AggregateMetrics.shuffleWriteTime) = formatNanoTime
+  @transient val formatterMap = new mutable.HashMap[AggregateMetrics.Metric, ((AggregateMetrics
+  .Metric, AggregateValue), mutable.StringBuilder) => Unit]()
   formatterMap(AggregateMetrics.shuffleWriteBytesWritten) = formatBytes
   formatterMap(AggregateMetrics.shuffleWriteRecordsWritten) = formatRecords
   formatterMap(AggregateMetrics.shuffleReadFetchWaitTime) = formatNanoTime
@@ -60,7 +94,7 @@ class AggregateMetrics() {
   formatterMap(AggregateMetrics.peakExecutionMemory)= formatBytes
   formatterMap(AggregateMetrics.taskDuration)= formatMillisTime
 
-  val numberFormatter = java.text.NumberFormat.getIntegerInstance
+  @transient val numberFormatter = java.text.NumberFormat.getIntegerInstance
 
   def bytesToString(size: Long): String = {
     val TB = 1L << 40
@@ -169,9 +203,15 @@ class AggregateMetrics() {
       formatterMap(x._1)(x, sb)
     })
   }
+
+  def getMap(): Map[String, Any] = {
+    Map("count" -> count, "map" -> map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap)
+  }
 }
 
 object AggregateMetrics extends Enumeration {
+  import org.json4s._
+
   type Metric = Value
   val shuffleWriteTime,
   shuffleWriteBytesWritten,
@@ -192,8 +232,21 @@ object AggregateMetrics extends Enumeration {
   peakExecutionMemory,
   taskDuration
   = Value
-}
 
+  def getAggregateMetrics(json: JValue): AggregateMetrics = {
+    implicit val formats = DefaultFormats
+
+    val metrics = new AggregateMetrics()
+    metrics.count = (json \ "count").extract[Int]
+    val map = (json \ "map").extract[Map[String, JValue]]
+
+    map.keys.foreach(key => metrics.map.put(withName(key),
+      AggregateValue.getValue(map.get(key).get)))
+
+    metrics
+  }
+
+}
 
 
 
