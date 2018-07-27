@@ -62,11 +62,38 @@ case class AppContext(appInfo:        ApplicationInfo,
     Serialization.writePretty(map)
   }
 
-
 }
 
 object AppContext {
 
+  def getMaxConcurrent[Span <: TimeSpan](map: mutable.HashMap[String, Span],
+                                         appContext: AppContext = null): Long = {
+
+    // sort all start and end times on basis of timing
+    val sorted = map.values.flatMap(timeSpan => {
+      val correctedEndTime = if (timeSpan.endTime == 0) {
+        if (appContext == null) {
+          System.currentTimeMillis()
+        } else appContext.appInfo.endTime
+      } else timeSpan.endTime
+      Seq[(Long, Long)]((timeSpan.startTime, 1L), (correctedEndTime, -1L))
+    }).toArray
+      .sortWith((t1: (Long, Long), t2: (Long, Long)) => {
+        // for same time entry, we add them first, and then remove
+        if (t1._1 == t2._1) {
+          t1._2 > t2._2
+        } else t1._1 < t2._1
+      })
+
+    var count = 0L
+    var maxConcurrent = 0L
+
+    sorted.foreach(tuple => {
+      count = count + tuple._2
+      maxConcurrent = math.max(maxConcurrent, count)
+    })
+    maxConcurrent
+  }
 
   def getMap[T](map: mutable.HashMap[T, _ <: TimeSpan]): Map[String, Any] = {
 
