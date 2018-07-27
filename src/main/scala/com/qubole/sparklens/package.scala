@@ -17,6 +17,6 @@ package object sparklens {
     /* When asyncReporting is dis-abled, we are not dumping data right now
      * to maintain status quo. However, this can be changed later to always dumping.
      */
-    conf.getBoolean("spark.sparklens.dump.data", false)
+    conf.getBoolean("spark.sparklens.dump.data", true)
   }
 }

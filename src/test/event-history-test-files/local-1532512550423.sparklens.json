@@ -1,0 +1,1205 @@
+{
+  "stageIDToJobID": {
+    "1": 1,
+    "0": 0
+  },
+  "appMetrics": {
+    "count": 8,
+    "map": {
+      "taskDuration": {
+        "value": 1034,
+        "min": 6,
+        "max": 265,
+        "mean": 129.24999999999997,
+        "variance": 120767.49999999999
+      },
+      "executorRuntime": {
+        "value": 91,
+        "min": 2,
+        "max": 21,
+        "mean": 11.375,
+        "variance": 703.875
+      },
+      "resultSize": {
+        "value": 5780,
+        "min": 699,
+        "max": 746,
+        "mean": 722.5,
+        "variance": 3729.9999999999945
+      },
+      "shuffleWriteRecordsWritten": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "shuffleReadRecordsRead": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "memoryBytesSpilled": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "shuffleReadBytesRead": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "outputBytesWritten": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "peakExecutionMemory": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "shuffleReadRemoteBlocks": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "shuffleWriteBytesWritten": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "jvmGCTime": {
+        "value": 44,
+        "min": 0,
+        "max": 11,
+        "mean": 5.500000000000001,
+        "variance": 242.00000000000006
+      },
+      "shuffleReadFetchWaitTime": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "inputBytesRead": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "diskBytesSpilled": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "shuffleReadLocalBlocks": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      },
+      "shuffleWriteTime": {
+        "value": 0,
+        "min": 0,
+        "max": 0,
+        "mean": 0.0,
+        "variance": 0.0
+      }
+    }
+  },
+  "hostMap": {
+    "localhost": {
+      "hostID": "localhost",
+      "hostMetrics": {
+        "count": 8,
+        "map": {
+          "taskDuration": {
+            "value": 1034,
+            "min": 6,
+            "max": 265,
+            "mean": 129.24999999999997,
+            "variance": 120767.49999999999
+          },
+          "executorRuntime": {
+            "value": 91,
+            "min": 2,
+            "max": 21,
+            "mean": 11.375,
+            "variance": 703.875
+          },
+          "resultSize": {
+            "value": 5780,
+            "min": 699,
+            "max": 746,
+            "mean": 722.5,
+            "variance": 3729.9999999999945
+          },
+          "shuffleWriteRecordsWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRecordsRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "memoryBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "outputBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "peakExecutionMemory": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRemoteBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "jvmGCTime": {
+            "value": 44,
+            "min": 0,
+            "max": 11,
+            "mean": 5.500000000000001,
+            "variance": 242.00000000000006
+          },
+          "shuffleReadFetchWaitTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "inputBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "diskBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadLocalBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          }
+        }
+      },
+      "startTime": 1532512550459,
+      "endTime": 0
+    }
+  },
+  "appInfo": {
+    "applicationID": "local-1532512550423",
+    "startTime": 1532512549494,
+    "endTime": 1532512565469
+  },
+  "executorMap": {
+    "driver": {
+      "startTime": 1532512550459,
+      "cores": 4,
+      "executorID": "driver",
+      "endTime": 0,
+      "hostID": "localhost",
+      "executorMetrics": {
+        "count": 8,
+        "map": {
+          "taskDuration": {
+            "value": 1034,
+            "min": 6,
+            "max": 265,
+            "mean": 129.24999999999997,
+            "variance": 120767.49999999999
+          },
+          "executorRuntime": {
+            "value": 91,
+            "min": 2,
+            "max": 21,
+            "mean": 11.375,
+            "variance": 703.875
+          },
+          "resultSize": {
+            "value": 5780,
+            "min": 699,
+            "max": 746,
+            "mean": 722.5,
+            "variance": 3729.9999999999945
+          },
+          "shuffleWriteRecordsWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRecordsRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "memoryBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "outputBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "peakExecutionMemory": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRemoteBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "jvmGCTime": {
+            "value": 44,
+            "min": 0,
+            "max": 11,
+            "mean": 5.500000000000001,
+            "variance": 242.00000000000006
+          },
+          "shuffleReadFetchWaitTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "inputBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "diskBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadLocalBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          }
+        }
+      }
+    }
+  },
+  "stageMap": {
+    "1": {
+      "taskPeakMemoryUsage": "[0,0,0,0]",
+      "minTaskLaunchTime": 1532512563452,
+      "startTime": 1532512563452,
+      "taskExecutionTimes": "[2,2,2,2]",
+      "stageID": 1,
+      "stageMetrics": {
+        "count": 4,
+        "map": {
+          "taskDuration": {
+            "value": 26,
+            "min": 6,
+            "max": 7,
+            "mean": 6.5,
+            "variance": 1.0
+          },
+          "executorRuntime": {
+            "value": 8,
+            "min": 2,
+            "max": 2,
+            "mean": 2.0,
+            "variance": 0.0
+          },
+          "resultSize": {
+            "value": 2804,
+            "min": 699,
+            "max": 703,
+            "mean": 701.0,
+            "variance": 16.0
+          },
+          "shuffleWriteRecordsWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRecordsRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "memoryBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "outputBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "peakExecutionMemory": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRemoteBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "jvmGCTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadFetchWaitTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "inputBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "diskBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadLocalBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          }
+        }
+      },
+      "endTime": 1532512563460,
+      "numberOfTasks": 4,
+      "maxTaskFinishTime": 1532512563460,
+      "parentStageIDs": "[]"
+    },
+    "0": {
+      "taskPeakMemoryUsage": "[0,0,0,0]",
+      "minTaskLaunchTime": 1532512561948,
+      "startTime": 1532512561948,
+      "taskExecutionTimes": "[20,21,21,21]",
+      "stageID": 0,
+      "stageMetrics": {
+        "count": 4,
+        "map": {
+          "taskDuration": {
+            "value": 1008,
+            "min": 247,
+            "max": 265,
+            "mean": 252.0,
+            "variance": 225.99999999999986
+          },
+          "executorRuntime": {
+            "value": 83,
+            "min": 20,
+            "max": 21,
+            "mean": 20.75,
+            "variance": 0.7499999999999991
+          },
+          "resultSize": {
+            "value": 2976,
+            "min": 742,
+            "max": 746,
+            "mean": 744.0,
+            "variance": 15.999999999999773
+          },
+          "shuffleWriteRecordsWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRecordsRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "memoryBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "outputBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "peakExecutionMemory": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRemoteBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "jvmGCTime": {
+            "value": 44,
+            "min": 11,
+            "max": 11,
+            "mean": 11.0,
+            "variance": 0.0
+          },
+          "shuffleReadFetchWaitTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "inputBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "diskBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadLocalBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          }
+        }
+      },
+      "endTime": 1532512562216,
+      "numberOfTasks": 4,
+      "maxTaskFinishTime": 1532512562216,
+      "parentStageIDs": "[]"
+    }
+  },
+  "jobMap": {
+    "1": {
+      "startTime": 1532512563447,
+      "endTime": 1532512563461,
+      "jobID": 1,
+      "jobMetrics": {
+        "count": 4,
+        "map": {
+          "taskDuration": {
+            "value": 26,
+            "min": 6,
+            "max": 7,
+            "mean": 6.5,
+            "variance": 1.0
+          },
+          "executorRuntime": {
+            "value": 8,
+            "min": 2,
+            "max": 2,
+            "mean": 2.0,
+            "variance": 0.0
+          },
+          "resultSize": {
+            "value": 2804,
+            "min": 699,
+            "max": 703,
+            "mean": 701.0,
+            "variance": 16.0
+          },
+          "shuffleWriteRecordsWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRecordsRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "memoryBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "outputBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "peakExecutionMemory": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRemoteBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "jvmGCTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadFetchWaitTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "inputBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "diskBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadLocalBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          }
+        }
+      },
+      "stageMap": {
+        "1": {
+          "taskPeakMemoryUsage": "[0,0,0,0]",
+          "minTaskLaunchTime": 1532512563452,
+          "startTime": 1532512563452,
+          "taskExecutionTimes": "[2,2,2,2]",
+          "stageID": 1,
+          "stageMetrics": {
+            "count": 4,
+            "map": {
+              "taskDuration": {
+                "value": 26,
+                "min": 6,
+                "max": 7,
+                "mean": 6.5,
+                "variance": 1.0
+              },
+              "executorRuntime": {
+                "value": 8,
+                "min": 2,
+                "max": 2,
+                "mean": 2.0,
+                "variance": 0.0
+              },
+              "resultSize": {
+                "value": 2804,
+                "min": 699,
+                "max": 703,
+                "mean": 701.0,
+                "variance": 16.0
+              },
+              "shuffleWriteRecordsWritten": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleReadRecordsRead": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "memoryBytesSpilled": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleReadBytesRead": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "outputBytesWritten": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "peakExecutionMemory": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleReadRemoteBlocks": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleWriteBytesWritten": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "jvmGCTime": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleReadFetchWaitTime": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "inputBytesRead": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "diskBytesSpilled": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleReadLocalBlocks": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleWriteTime": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              }
+            }
+          },
+          "endTime": 1532512563460,
+          "numberOfTasks": 4,
+          "maxTaskFinishTime": 1532512563460,
+          "parentStageIDs": "[]"
+        }
+      }
+    },
+    "0": {
+      "startTime": 1532512561759,
+      "endTime": 1532512562228,
+      "jobID": 0,
+      "jobMetrics": {
+        "count": 4,
+        "map": {
+          "taskDuration": {
+            "value": 1008,
+            "min": 247,
+            "max": 265,
+            "mean": 252.0,
+            "variance": 225.99999999999986
+          },
+          "executorRuntime": {
+            "value": 83,
+            "min": 20,
+            "max": 21,
+            "mean": 20.75,
+            "variance": 0.7499999999999991
+          },
+          "resultSize": {
+            "value": 2976,
+            "min": 742,
+            "max": 746,
+            "mean": 744.0,
+            "variance": 15.999999999999773
+          },
+          "shuffleWriteRecordsWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRecordsRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "memoryBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "outputBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "peakExecutionMemory": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadRemoteBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteBytesWritten": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "jvmGCTime": {
+            "value": 44,
+            "min": 11,
+            "max": 11,
+            "mean": 11.0,
+            "variance": 0.0
+          },
+          "shuffleReadFetchWaitTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "inputBytesRead": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "diskBytesSpilled": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleReadLocalBlocks": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          },
+          "shuffleWriteTime": {
+            "value": 0,
+            "min": 0,
+            "max": 0,
+            "mean": 0.0,
+            "variance": 0.0
+          }
+        }
+      },
+      "stageMap": {
+        "0": {
+          "taskPeakMemoryUsage": "[0,0,0,0]",
+          "minTaskLaunchTime": 1532512561948,
+          "startTime": 1532512561948,
+          "taskExecutionTimes": "[20,21,21,21]",
+          "stageID": 0,
+          "stageMetrics": {
+            "count": 4,
+            "map": {
+              "taskDuration": {
+                "value": 1008,
+                "min": 247,
+                "max": 265,
+                "mean": 252.0,
+                "variance": 225.99999999999986
+              },
+              "executorRuntime": {
+                "value": 83,
+                "min": 20,
+                "max": 21,
+                "mean": 20.75,
+                "variance": 0.7499999999999991
+              },
+              "resultSize": {
+                "value": 2976,
+                "min": 742,
+                "max": 746,
+                "mean": 744.0,
+                "variance": 15.999999999999773
+              },
+              "shuffleWriteRecordsWritten": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleReadRecordsRead": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "memoryBytesSpilled": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleReadBytesRead": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "outputBytesWritten": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "peakExecutionMemory": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleReadRemoteBlocks": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleWriteBytesWritten": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "jvmGCTime": {
+                "value": 44,
+                "min": 11,
+                "max": 11,
+                "mean": 11.0,
+                "variance": 0.0
+              },
+              "shuffleReadFetchWaitTime": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "inputBytesRead": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "diskBytesSpilled": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleReadLocalBlocks": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              },
+              "shuffleWriteTime": {
+                "value": 0,
+                "min": 0,
+                "max": 0,
+                "mean": 0.0,
+                "variance": 0.0
+              }
+            }
+          },
+          "endTime": 1532512562216,
+          "numberOfTasks": 4,
+          "maxTaskFinishTime": 1532512562216,
+          "parentStageIDs": "[]"
+        }
+      }
+    }
+  }
+}
