@@ -24,11 +24,22 @@ class EventHistoryReporter(file: String) {
     .set("spark.sparklens.simulation.async", "false")
     .set("spark.sparklens.dump.data", "false")
   val listener = new QuboleJobListener(conf)
-  val replayMethod = busKlass.getMethod("replay", classOf[InputStream], classOf[String],
-    classOf[Boolean])
-
   addListenerMethod.invoke(bus, listener)
-  replayMethod.invoke(bus, getDecodedInputStream(file, conf), file, boolean2Boolean(false))
+
+
+  try {
+    val replayMethod = busKlass.getMethod("replay", classOf[InputStream], classOf[String],
+      classOf[Boolean])
+    replayMethod.invoke(bus, getDecodedInputStream(file, conf), file, boolean2Boolean(false))
+  } catch {
+    case e: NoSuchMethodException => // spark binaries are 2.1* and above
+      val replayMethod = busKlass.getMethod("replay", classOf[InputStream], classOf[String],
+        classOf[Boolean], classOf[String => Boolean])
+      replayMethod.invoke(bus, getDecodedInputStream(file, conf), file, boolean2Boolean(false),
+        getFilter _)
+
+  }
+
 
   // Borrowed from CompressionCodecs in spark
   private def getDecodedInputStream(file: String, conf: SparkConf): InputStream = {
