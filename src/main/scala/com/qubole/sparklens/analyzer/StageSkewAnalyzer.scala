@@ -101,7 +101,8 @@ class StageSkewAnalyzer extends  AppAnalyzer {
                        + sts.stageMetrics.map(AggregateMetrics.outputBytesWritten).value
                        + sts.stageMetrics.map(AggregateMetrics.shuffleWriteBytesWritten).value
                        + sts.stageMetrics.map(AggregateMetrics.shuffleReadBytesRead).value
-        val maxTaskMemory = sts.taskPeakMemoryUsage.take(executorCores.toInt).sum
+        val maxTaskMemory = sts.taskPeakMemoryUsage.take(executorCores.toInt).sum // this could
+        // be at different times?
       //val maxTaskMemoryUtilization = (maxTaskMemory*100)/executorMemory
         val IOPercent = (stageBytes* 100)/ totalIOBytes.toFloat
         val taskRuntimePercent = (sts.stageMetrics.map(AggregateMetrics.executorRuntime).value * 100)/totalRuntime.toFloat

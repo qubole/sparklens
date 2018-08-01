@@ -33,8 +33,8 @@ class ExecutorTimelineAnalyzer extends  AppAnalyzer {
     val out = new mutable.StringBuilder()
 
     out.println("\nPrinting executors timeline....\n")
-    out.println(s"Total Hosts ${ac.hostMap.size}")
-    out.println(s"Total Executors ${ac.executorMap.size}")
+    out.println(s"Total Executors ${ac.executorMap.size}, " +
+      s"and maximum concurrent executors = ${AppContext.getMaxConcurrent(ac.executorMap, ac)}")
 
     val minuteExecutorMap = new mutable.HashMap[String, (ListBuffer[ExecutorTimeSpan], ListBuffer[ExecutorTimeSpan])]()
 
@@ -58,7 +58,7 @@ class ExecutorTimelineAnalyzer extends  AppAnalyzer {
         out.println (s"At ${x} executors added ${minuteExecutorMap(x)._1.size} & removed  ${minuteExecutorMap(x)._2.size} currently available ${currentCount}")
       })
 
-    out.println("\nDone printing executors timeline...\n")
+    out.println("\nDone printing executors timeline...\n============================\n")
     out.toString()
   }
 }
