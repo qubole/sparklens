@@ -14,7 +14,7 @@ package object sparklens {
   }
 
   private [qubole] def dumpDataEnabled(conf: SparkConf): Boolean = {
-    /* Even if reporting is async, we can still dump sparklens data which could be used later */
+    /* Even if reporting is in app, we can still dump sparklens data which could be used later */
     conf.getBoolean("spark.sparklens.dump.data", true)
   }
 }
