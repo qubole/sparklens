@@ -14,9 +14,7 @@ package object sparklens {
   }
 
   private [qubole] def dumpDataEnabled(conf: SparkConf): Boolean = {
-    /* When asyncReporting is dis-abled, we are not dumping data right now
-     * to maintain status quo. However, this can be changed later to always dumping.
-     */
+    /* Even if reporting is async, we can still dump sparklens data which could be used later */
     conf.getBoolean("spark.sparklens.dump.data", true)
   }
 }

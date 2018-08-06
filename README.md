@@ -82,7 +82,50 @@ Using the sparklens package.
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
-Or 
+**Or**
+
+You can choose not to run sparklens inside the app, but at a later time. Run you app as above 
+with an additional conf:
+```
+--packages qubole:sparklens:0.1.2-s_2.11
+--conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
+--conf spark.sparklens.simulation.async=true
+```
+
+This will create a sparklens dump which is stored at **spark.sparklens.dump.dir** directory (by 
+default it is **/tmp/sparklens/**). This dump can now be used to run sparklens independently: 
+
+`java -cp <classpath> com.qubole.sparklens.app.ReporterApp 
+<sparklens-dump-file>`
+
+One needs to include hadoop-jars, and sparklens-jar in classpath. For eg:
+
+```
+java \
+-cp ~/Downloads/spark-2.3.0-bin-hadoop2.7/conf/:~/Downloads/spark-2.3.0-bin-hadoop2
+.7/jars/*:/path/to/sparklens_2.11-0.1.2.jar \
+com.qubole.sparklens.app.ReporterApp \
+/tmp/sparklens/local-1533551522893.sparklens.json
+```
+
+**Or**
+
+You can run sparklens on a previously run spark-app using event-history file also, (similar to 
+running via sparklens-dump above) with another option specifying that is file is an event-history 
+file. This file can be in any of the formats event-history files supports, i.e. **text, snappy, lz4 
+or lzf**. Eg command:
+
+```
+java \
+-cp ~/Downloads/spark-2.3.0-bin-hadoop2.7/conf/:~/Downloads/spark-2.3.0-bin-hadoop2
+.7/jars/*:/path/to/sparklens_2.11-0.1.2.jar \
+com.qubole.sparklens.app.ReporterApp \
+~/Desktop/spark-history/local-1533551522893 \ 
+source=history
+
+```
+
+**Or** 
 
 Checkout the code and use the normal sbt commands: 
 
