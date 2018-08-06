@@ -83,11 +83,11 @@ class StageSkewAnalyzer extends  AppAnalyzer {
                                                       + x.jobMetrics.map(AggregateMetrics.shuffleReadBytesRead).value)
                                               ).sum
 
-    val maxMem = ac.stageMap.keySet
+    ac.stageMap.keySet
       .toBuffer
       .sortWith( _ < _ )
       .filter( x => ac.stageMap.get(x).get.endTime != 0)
-      .map(x => {
+      .foreach(x => {
         val sts = ac.stageMap.get(x).get
         val duration = sts.duration().get
         val available = totalCores * duration
@@ -114,10 +114,13 @@ class StageSkewAnalyzer extends  AppAnalyzer {
           f"${bytesToString(sts.stageMetrics.map(AggregateMetrics.shuffleReadBytesRead).value)}%8s " +
           f" ${bytesToString(sts.stageMetrics.map(AggregateMetrics.shuffleWriteBytesWritten).value)}%8s    " +
           f"${pd(duration)}   ${pd(idealWallClock)} ${pcm(available)}%10s  $usedPercent%5.1f  $wastedPercent%5.1f  ${bytesToString(maxTaskMemory)}%8s ")
-        maxTaskMemory
-    }).sorted.last
+    })
 
+    val maxMem = ac.stageMap.keySet.map(key => {
+      ac.stageMap.get(key).get.taskPeakMemoryUsage.take((totalCores/totalExecutors).toInt).sum
+    }).toSeq.sorted.last
     out.println(f"Max memory which an executor could have taken = ${bytesToString(maxMem)}%8s")
+
     out.println("\n")
   }
 
