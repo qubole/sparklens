@@ -76,6 +76,7 @@ class AggregateMetrics() {
   val map = new mutable.HashMap[AggregateMetrics.Metric, AggregateValue]()
   @transient val formatterMap = new mutable.HashMap[AggregateMetrics.Metric, ((AggregateMetrics
   .Metric, AggregateValue), mutable.StringBuilder) => Unit]()
+  formatterMap(AggregateMetrics.shuffleWriteTime) = formatNanoTime
   formatterMap(AggregateMetrics.shuffleWriteBytesWritten) = formatBytes
   formatterMap(AggregateMetrics.shuffleWriteRecordsWritten) = formatRecords
   formatterMap(AggregateMetrics.shuffleReadFetchWaitTime) = formatNanoTime
