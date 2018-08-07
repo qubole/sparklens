@@ -131,7 +131,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
 
   private[this] def dumpData(appContext: AppContext): Unit = {
     val dumpDir = getDumpDirectory(sparkConf)
-    println(s"Dumping sparkLens data to ${dumpDir}")
+    println(s"Saving sparkLens data to ${dumpDir}")
     val fs = FileSystem.get(new URI(dumpDir), new Configuration())
     val stream = fs.create(new Path(s"${dumpDir}/${appInfo.applicationID}.sparklens.json"))
     val jsonString = appContext.toString
@@ -160,7 +160,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
 
     asyncReportingEnabled(sparkConf) match {
       case true => {
-        println("Dumping sparklens data.")
+        println("Reporting disabled. Will save sparklens data file for later use.")
         dumpData(appContext)
       }
       case false => {
