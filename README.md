@@ -75,16 +75,59 @@ spark users can help us in finding what is missing here by raising challenging t
 
 ### How to use Sparklens? ###
 
-Using the sparklens package.
+#### 1. Using the sparklens package while running your app #### 
 
+Use the following arguments in spark-submit or spark-shell:
 ```
---packages qubole:sparklens:0.1.2-s_2.11
+--packages qubole:sparklens:0.1.3-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
-Or 
+#### 2. Run from sparklens offline data ####
 
-Checkout the code and use the normal sbt commands: 
+You can choose not to run sparklens inside the app, but at a later time. Run you app as above 
+with an additional conf:
+```
+--packages qubole:sparklens:0.1.3-s_2.11
+--conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
+--conf spark.sparklens.reporting.disabled=true
+```
+
+This will not run reporting, but instead create a sparklens data file for the application which is 
+stored at **spark.sparklens.data.dir** directory (by default it is **/tmp/sparklens/**). This 
+data-file can now be used to run sparklens independently: 
+
+`java -cp <classpath> com.qubole.sparklens.app.ReporterApp 
+<sparklens-data-file>`
+
+One needs to include hadoop-jars, and sparklens-jar in classpath. For eg:
+
+```
+java \
+-cp ~/Downloads/spark-2.3.0-bin-hadoop2.7/conf/:~/Downloads/spark-2.3.0-bin-hadoop2
+.7/jars/*:/path/to/sparklens_2.11-0.1.3.jar \
+com.qubole.sparklens.app.ReporterApp \
+/tmp/sparklens/local-1533551522893.sparklens.json
+```
+
+#### 3. Run from spark event-history file ####
+
+You can run sparklens on a previously run spark-app using event-history file also, (similar to 
+running via sparklens-data-file above) with another option specifying that is file is an 
+event-history file. This file can be in any of the formats event-history files supports, i.e. **text, snappy, lz4 
+or lzf**. Eg command:
+
+```
+java \
+-cp ~/Downloads/spark-2.3.0-bin-hadoop2.7/conf/:~/Downloads/spark-2.3.0-bin-hadoop2
+.7/jars/*:/path/to/sparklens_2.11-0.1.3.jar \
+com.qubole.sparklens.app.ReporterApp \
+~/Desktop/spark-history/local-1533551522893 \ 
+source=history
+
+```
+
+#### 4. Checkout the code and use the normal sbt commands: #### 
 
 ```
 sbt compile 

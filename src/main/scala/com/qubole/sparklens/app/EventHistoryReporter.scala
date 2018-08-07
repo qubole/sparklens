@@ -21,8 +21,8 @@ class EventHistoryReporter(file: String) {
   val bus = busKlass.newInstance()
   val addListenerMethod = busKlass.getMethod("addListener", classOf[Object])
   val conf = new SparkConf()
-    .set("spark.sparklens.simulation.async", "false")
-    .set("spark.sparklens.dump.data", "false")
+    .set("spark.sparklens.reporting.disabled", "false")
+    .set("spark.sparklens.save.data", "false")
   val listener = new QuboleJobListener(conf)
   addListenerMethod.invoke(bus, listener)
 
