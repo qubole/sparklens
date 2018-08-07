@@ -42,5 +42,10 @@ pomExtra :=
       <name>Rohit Karlupia</name>
       <url>https://github.com/iamrohit</url>
     </developer>
+    <developer>
+      <id>beriaanirudh</id>
+      <name>Anirudh Beria</name>
+      <url>https://github.com/beriaanirudh</url>
+    </developer>
   </developers>
 

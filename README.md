@@ -79,7 +79,7 @@ spark users can help us in finding what is missing here by raising challenging t
 
 Use the following arguments in spark-submit or spark-shell:
 ```
---packages qubole:sparklens:0.1.3-s_2.11
+--packages qubole:sparklens:0.2.0-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
@@ -88,7 +88,7 @@ Use the following arguments in spark-submit or spark-shell:
 You can choose not to run sparklens inside the app, but at a later time. Run you app as above 
 with an additional conf:
 ```
---packages qubole:sparklens:0.1.3-s_2.11
+--packages qubole:sparklens:0.2.0-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 --conf spark.sparklens.reporting.disabled=true
 ```
@@ -105,7 +105,7 @@ One needs to include hadoop-jars, and sparklens-jar in classpath. For eg:
 ```
 java \
 -cp ~/Downloads/spark-2.3.0-bin-hadoop2.7/conf/:~/Downloads/spark-2.3.0-bin-hadoop2
-.7/jars/*:/path/to/sparklens_2.11-0.1.3.jar \
+.7/jars/*:/path/to/sparklens_2.11-0.2.0.jar \
 com.qubole.sparklens.app.ReporterApp \
 /tmp/sparklens/local-1533551522893.sparklens.json
 ```
@@ -120,7 +120,7 @@ or lzf**. Eg command:
 ```
 java \
 -cp ~/Downloads/spark-2.3.0-bin-hadoop2.7/conf/:~/Downloads/spark-2.3.0-bin-hadoop2
-.7/jars/*:/path/to/sparklens_2.11-0.1.3.jar \
+.7/jars/*:/path/to/sparklens_2.11-0.2.0.jar \
 com.qubole.sparklens.app.ReporterApp \
 ~/Desktop/spark-history/local-1533551522893 \ 
 source=history
