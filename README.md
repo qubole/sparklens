@@ -75,7 +75,7 @@ spark users can help us in finding what is missing here by raising challenging t
 
 ### How to use Sparklens? ###
 
-####1. Using the sparklens package while running your app
+#### 1. Using the sparklens package while running your app #### 
 
 Use the following arguments in spark-submit or spark-shell:
 ```
@@ -83,7 +83,7 @@ Use the following arguments in spark-submit or spark-shell:
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
-####2. Run from sparklens offline data
+#### 2. Run from sparklens offline data ####
 
 You can choose not to run sparklens inside the app, but at a later time. Run you app as above 
 with an additional conf:
@@ -110,7 +110,7 @@ com.qubole.sparklens.app.ReporterApp \
 /tmp/sparklens/local-1533551522893.sparklens.json
 ```
 
-####3. Run from spark event-history file
+#### 3. Run from spark event-history file ####
 
 You can run sparklens on a previously run spark-app using event-history file also, (similar to 
 running via sparklens-data-file above) with another option specifying that is file is an 
@@ -127,7 +127,7 @@ source=history
 
 ```
 
-####4. Checkout the code and use the normal sbt commands: 
+#### 4. Checkout the code and use the normal sbt commands: #### 
 
 ```
 sbt compile 
