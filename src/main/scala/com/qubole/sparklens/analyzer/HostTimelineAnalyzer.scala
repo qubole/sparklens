@@ -31,8 +31,8 @@ class HostTimelineAnalyzer extends  AppAnalyzer {
   def analyze(appContext: AppContext, startTime: Long, endTime: Long): String = {
     val ac = appContext.filterByStartAndEndTime(startTime, endTime)
     val out = new mutable.StringBuilder()
-    out.println("Done printing host timeline")
-    out.println(s"\nTotal Hosts ${ac.hostMap.size}")
+    out.println(s"\nTotal Hosts ${ac.hostMap.size}, " +
+      s"and the maximum concurrent hosts = ${AppContext.getMaxConcurrent(ac.hostMap, ac)}")
     val minuteHostMap = new mutable.HashMap[Long, ListBuffer[HostTimeSpan]]()
     ac.hostMap.values
       .foreach( x => {
@@ -50,7 +50,7 @@ class HostTimelineAnalyzer extends  AppAnalyzer {
       val executorsOnHost = ac.executorMap.values.filter( _.hostID.equals(x.hostID))
       out.println(s"Host ${x.hostID} startTime ${pt(x.startTime)} executors count ${executorsOnHost.size}")
     })
-    out.println("Done printing host timeline")
+    out.println("Done printing host timeline\n======================\n")
     out.toString()
   }
 }

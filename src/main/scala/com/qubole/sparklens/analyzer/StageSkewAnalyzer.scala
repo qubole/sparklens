@@ -101,7 +101,8 @@ class StageSkewAnalyzer extends  AppAnalyzer {
                        + sts.stageMetrics.map(AggregateMetrics.outputBytesWritten).value
                        + sts.stageMetrics.map(AggregateMetrics.shuffleWriteBytesWritten).value
                        + sts.stageMetrics.map(AggregateMetrics.shuffleReadBytesRead).value
-        val maxTaskMemory = sts.taskPeakMemoryUsage.take(executorCores.toInt).sum
+        val maxTaskMemory = sts.taskPeakMemoryUsage.take(executorCores.toInt).sum // this could
+        // be at different times?
       //val maxTaskMemoryUtilization = (maxTaskMemory*100)/executorMemory
         val IOPercent = (stageBytes* 100)/ totalIOBytes.toFloat
         val taskRuntimePercent = (sts.stageMetrics.map(AggregateMetrics.executorRuntime).value * 100)/totalRuntime.toFloat
@@ -114,10 +115,14 @@ class StageSkewAnalyzer extends  AppAnalyzer {
           f" ${bytesToString(sts.stageMetrics.map(AggregateMetrics.shuffleWriteBytesWritten).value)}%8s    " +
           f"${pd(duration)}   ${pd(idealWallClock)} ${pcm(available)}%10s  $usedPercent%5.1f  $wastedPercent%5.1f  ${bytesToString(maxTaskMemory)}%8s ")
     })
+
+    val maxMem = ac.stageMap.keySet.map(key => {
+      ac.stageMap.get(key).get.taskPeakMemoryUsage.take((totalCores/totalExecutors).toInt).sum
+    }).toSeq.sorted.last
+    out.println(f"Max memory which an executor could have taken = ${bytesToString(maxMem)}%8s")
+
     out.println("\n")
   }
-
-
 
   def checkForGCOrShuffleService(ac: AppContext, out: mutable.StringBuilder): Unit = {
     val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap, ac)
