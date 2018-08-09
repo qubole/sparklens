@@ -95,37 +95,20 @@ with an additional conf:
 
 This will not run reporting, but instead create a sparklens data file for the application which is 
 stored at **spark.sparklens.data.dir** directory (by default it is **/tmp/sparklens/**). This 
-data-file can now be used to run sparklens independently: 
+data-file can now be used to run sparklens independently, using spark-submit command as follows:
 
-`java -cp <classpath> com.qubole.sparklens.app.ReporterApp 
-<sparklens-data-file>`
+`./bin/spark-submit --packages qubole:sparklens:0.2.0-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
 
-One needs to include hadoop-jars, and sparklens-jar in classpath. For eg:
-
-```
-java \
--cp ~/Downloads/spark-2.3.0-bin-hadoop2.7/conf/:~/Downloads/spark-2.3.0-bin-hadoop2
-.7/jars/*:/path/to/sparklens_2.11-0.2.0.jar \
-com.qubole.sparklens.app.ReporterApp \
-/tmp/sparklens/local-1533551522893.sparklens.json
-```
+`<filename>` should be replaced by the full path of sparklens data file.
 
 #### 3. Run from spark event-history file ####
 
 You can run sparklens on a previously run spark-app using event-history file also, (similar to 
 running via sparklens-data-file above) with another option specifying that is file is an 
 event-history file. This file can be in any of the formats event-history files supports, i.e. **text, snappy, lz4 
-or lzf**. Eg command:
+or lzf**. Note the extra `source=history` parameter in this example:
 
-```
-java \
--cp ~/Downloads/spark-2.3.0-bin-hadoop2.7/conf/:~/Downloads/spark-2.3.0-bin-hadoop2
-.7/jars/*:/path/to/sparklens_2.11-0.2.0.jar \
-com.qubole.sparklens.app.ReporterApp \
-~/Desktop/spark-history/local-1533551522893 \ 
-source=history
-
-```
+`./bin/spark-submit --packages qubole:sparklens:0.2.0-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
 
 #### 4. Checkout the code and use the normal sbt commands: #### 
 
