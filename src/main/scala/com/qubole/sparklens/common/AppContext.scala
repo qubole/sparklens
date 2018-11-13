@@ -72,7 +72,7 @@ object AppContext {
     // sort all start and end times on basis of timing
     val sorted = map.values.flatMap(timeSpan => {
       val correctedEndTime = if (timeSpan.endTime == 0) {
-        if (appContext == null) {
+        if (appContext == null || appContext.appInfo.endTime == 0) {
           System.currentTimeMillis()
         } else appContext.appInfo.endTime
       } else timeSpan.endTime
