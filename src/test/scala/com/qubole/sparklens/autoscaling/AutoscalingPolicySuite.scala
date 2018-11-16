@@ -11,6 +11,10 @@ import scala.collection.mutable
 
 class AutoscalingPolicySuite extends FunSuite {
 
+  /**
+    * These tests donot have the time at which job starts and ends automated. Automating this
+    * would make these tests better.
+    */
   test("basic test") {
     /* List with `(jobId, startTime, endTime, optimumExecutors)` */
     val proxyJobList = List(List(1L, 1, 10, 2), List(2L, 11, 20, 4), List(3L, 21, 30, 1))
@@ -38,10 +42,10 @@ class AutoscalingPolicySuite extends FunSuite {
     assert (client.killRequests.size == 0)
 
     // add all the requested executors. Should be done before removal of executors is tried.
-    policy.addExecutor(new SparkListenerExecutorAdded(0, "1", null))
-    policy.addExecutor(new SparkListenerExecutorAdded(0, "2", null))
-    policy.addExecutor(new SparkListenerExecutorAdded(0, "3", null))
-    policy.addExecutor(new SparkListenerExecutorAdded(0, "4", null))
+    policy.onExecutorAdded(new SparkListenerExecutorAdded(0, "1", null))
+    policy.onExecutorAdded(new SparkListenerExecutorAdded(0, "2", null))
+    policy.onExecutorAdded(new SparkListenerExecutorAdded(0, "3", null))
+    policy.onExecutorAdded(new SparkListenerExecutorAdded(0, "4", null))
 
 
     // assert 2 executors have been asked to released when job 3 starts
@@ -53,6 +57,7 @@ class AutoscalingPolicySuite extends FunSuite {
 
     // assert that remaining 1 executor is also removed after job 3 (last job) is complete.
     policy.scale(new SparkListenerJobEnd(3, 0, null))
+    Thread.sleep(AutoscalingPolicy.releaseTimeout * 4)
     assert (client.killRequests.size == 2)
     assert (client.killRequests.last.size == 1)
 
@@ -66,10 +71,11 @@ class AutoscalingPolicySuite extends FunSuite {
 
     // Start and end the first job
     policy.scale(new SparkListenerJobStart(1, 0, Seq.empty))
-    (1 to 10).foreach(x => policy.addExecutor(new SparkListenerExecutorAdded(0, x.toString, null)))
+    (1 to 10).foreach(x => policy.onExecutorAdded(new SparkListenerExecutorAdded(0, x.toString, null)))
     policy.scale(new SparkListenerJobEnd(1, 0, null))
 
     // check all executors have been asked to release
+    Thread.sleep(AutoscalingPolicy.releaseTimeout * 4)
     assert (client.killRequests.size == 1)
     assert (client.killRequests.last.size == 10)
 
@@ -106,7 +112,7 @@ class AutoscalingPolicySuite extends FunSuite {
     // start and end job 1
     policy.scale(new SparkListenerJobStart(1, 0, Seq.empty))
     policy.scale(new SparkListenerJobEnd(1, 0, null))
-    (1 to 20).foreach(x => policy.addExecutor(new SparkListenerExecutorAdded(0, x.toString, null)))
+    (1 to 20).foreach(x => policy.onExecutorAdded(new SparkListenerExecutorAdded(0, x.toString, null)))
 
     // start job 2, it will ask to kill 10 executors, but donot kill them yet.
     policy.scale(new SparkListenerJobStart(2, 0, Seq.empty))
@@ -124,7 +130,7 @@ class AutoscalingPolicySuite extends FunSuite {
     // finish job 3. Some executors from both previous remove request are completed, but not all.
     policy.scale(new SparkListenerJobEnd(3, 0, null))
     List(client.killRequests.head, client.killRequests.last).foreach(_.take(2).foreach(x => {
-      policy.removeExecutor(new SparkListenerExecutorRemoved(0, x.toString, null))
+      policy.onExecutorRemoved(new SparkListenerExecutorRemoved(0, x.toString, null))
     }))
 
     // despite these random executor removals, asking client for executor removal should be
@@ -138,6 +144,7 @@ class AutoscalingPolicySuite extends FunSuite {
 
     // remove remaining 2 executors after complete of 4th job
     policy.scale(new SparkListenerJobEnd(4, 0, null))
+    Thread.sleep(AutoscalingPolicy.releaseTimeout * 4)
     assert (client.killRequests.size == 4)
     assert (client.killRequests.last.size == 2)
 
@@ -145,8 +152,65 @@ class AutoscalingPolicySuite extends FunSuite {
       client.killRequests.slice(0,2).flatMap(x => x).toSet).size == 0)
   }
 
+  test ("donot upscale beyond max") {
+    /* List with `(jobId, startTime, endTime, optimumExecutors)` */
+    val proxyJobList = List(List(1L, 1, 10, 2000))
+    val (policy, client) = getPolicy(proxyJobList)
+
+    policy.scale(new SparkListenerJobStart(1, 0, Seq.empty))
+
+    assert (client.updateRequests.size == 1)
+    assert (client.updateRequests.last == 1000)
+  }
+
+  test ("parallel jobs") {
+    val proxyJobList = List(List(1L, 1, 20, 20), List(2L, 11, 30, 10), List(3L, 15, 30, 5), List
+    (4L, 31 + AutoscalingPolicy.releaseTimeout, 40, 2))
+    val (policy, client) = getPolicy(proxyJobList)
+
+    // start job 1, check 20 executors
+    policy.scale(new SparkListenerJobStart(1, 0, Seq.empty))
+    assert (client.updateRequests.size == 1)
+    assert (client.updateRequests.last == 20)
+
+    // start job 2, check for 30 executors total now.
+    policy.scale(new SparkListenerJobStart(2, 0, Seq.empty))
+    assert (client.updateRequests.size == 2)
+    assert (client.updateRequests.last == 30)
+
+    // start job 3, check for 35 executors total
+    policy.scale(new SparkListenerJobStart(3, 0, Seq.empty))
+    assert (client.updateRequests.size == 3)
+    assert (client.updateRequests.last == 35)
+
+    // Add all the executors
+    (1 to 35).foreach(x => policy.onExecutorAdded(new SparkListenerExecutorAdded(0, x.toString, null)))
+
+    // complete job 1, immediately remove corresponding executors
+    policy.scale(new SparkListenerJobEnd(1, 0, null))
+    assert (client.killRequests.size == 1)
+    assert (client.killRequests.last.size == 20)
+
+    // complete job 2, immediately remove corresponding executors
+    policy.scale(new SparkListenerJobEnd(2, 0, null))
+    assert (client.killRequests.size == 2)
+    assert (client.killRequests.last.size == 10)
+
+    // complete job 3, donot see that kill request has come for this
+    policy.scale(new SparkListenerJobEnd(3, 0, null))
+    assert (client.killRequests.size == 2)
+
+    // after waiting for release timeout, this should be released
+    Thread.sleep(AutoscalingPolicy.releaseTimeout * 4)
+    assert (client.killRequests.size == 3)
+    assert (client.killRequests.last.size == 5)
+
+  }
+
   private def getPolicy(proxyJobList: List[List[Long]]):
   (AutoscalingPolicy, DummyAutoscalingSparklensClient) = {
+
+    AutoscalingPolicy.setTimeoutForUnitTest(100)
     val appInfo = new ApplicationInfo()
     appInfo.startTime = 0
 
@@ -172,7 +236,9 @@ class AutoscalingPolicySuite extends FunSuite {
       mutable.HashMap.empty[Int, StageTimeSpan],
       mutable.HashMap.empty[Int, Long]
     )
-    (new AutoscalingPolicy(client, new SparkConf(), Some(ac)), client)
+    (new AutoscalingPolicy(client, new SparkConf().set("spark.dynamicAllocation.maxExecutors",
+      "1000"),
+      Some(ac)), client)
   }
 
   class DummyJobTimeSpan(jobID: Long, optimumNumExecs: Int) extends JobTimeSpan(jobID) {

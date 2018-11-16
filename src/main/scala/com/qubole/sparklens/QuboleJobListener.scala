@@ -187,7 +187,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     }
   }
   override def onExecutorAdded(executorAdded: SparkListenerExecutorAdded): Unit = {
-    autoscalingPolicy.map(_.addExecutor(executorAdded))
+    autoscalingPolicy.map(_.onExecutorAdded(executorAdded))
     val executorTimeSpan = executorMap.get(executorAdded.executorId)
     if (!executorTimeSpan.isDefined) {
       val timeSpan = new ExecutorTimeSpan(executorAdded.executorId,
@@ -205,7 +205,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   }
 
   override def onExecutorRemoved(executorRemoved: SparkListenerExecutorRemoved): Unit = {
-    autoscalingPolicy.map(_.removeExecutor(executorRemoved))
+    autoscalingPolicy.map(_.onExecutorRemoved(executorRemoved))
     val executorTimeSpan = executorMap(executorRemoved.executorId)
     executorTimeSpan.setEndTime(executorRemoved.time)
     //We don't get any event for host. Will not try to check when the hosts go out of service

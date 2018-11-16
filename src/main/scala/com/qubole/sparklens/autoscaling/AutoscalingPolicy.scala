@@ -1,5 +1,7 @@
 package com.qubole.sparklens.autoscaling
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import com.qubole.sparklens
 import com.qubole.sparklens.app.ReporterApp
 import com.qubole.sparklens.common.AppContext
@@ -23,13 +25,47 @@ class AutoscalingPolicy(autoscalingClient: AutoscalingSparklensClient, sparkConf
   private val currentExecutors: mutable.Set[String] =  new mutable.HashSet[String]()
   private val execsToBeReleased: mutable.Set[String] =  new mutable.HashSet[String]()
 
+  @volatile private var initalized: AtomicBoolean = new AtomicBoolean(false)
   @volatile private var lastNumExecutorsRequested: Int =
-    sparkConf.getInt("spark.dynamicAllocation.minExecutors",
-    sparkConf.getInt("spark.executor.instances", 0))
+    getDynamicAllocationInitialExecutors(sparkConf)
+
+
+  /** The following functions getDynamicAllocationInitialExecutors,
+   *                         getDynamicAllocationMinExecutors and
+   *                         getDynamicAllocationMaxExecutors
+   *  have been copied from Qubole Spark repo's Utils.scala
+   */
+
+  /**
+    * Return the initial number of executors for dynamic allocation.
+    */
+  def getDynamicAllocationInitialExecutors(conf: SparkConf): Int = {
+    conf.getInt("spark.dynamicAllocation.initialExecutors",
+      getDynamicAllocationMinExecutors(conf))
+  }
+
+  /**
+    * Return the minimum number of executors for dynamic allocation.
+    */
+  def getDynamicAllocationMinExecutors(conf: SparkConf): Int = {
+    conf.getInt("spark.dynamicAllocation.minExecutors",
+      conf.getInt("spark.executor.instances", 0))
+  }
+
+  /**
+    * Return the maximum number of executors for dynamic allocation.
+    */
+  def getDynamicAllocationMaxExecutors(conf: SparkConf): Int = {
+    val defaultMaxExecutors = conf.getInt("spark.qubole.internal.default.maxExecutors",
+      2)
+    val maxExecutors = conf.getInt("spark.dynamicAllocation.maxExecutors",
+      conf.getInt("spark.qubole.max.executors", defaultMaxExecutors))
+    maxExecutors.max(getDynamicAllocationMinExecutors(conf))
+  }
 
 
   // maybe this needs to be delayed till SparkContext has come up
-  private def init: Map[ExecutorChange, Int] = {
+  private def init: Map[Int, Int] = {
     log.debug("Init for sparklens autoscaling policy")
     val olderAppContext = unitTestAppContext match {
       case Some(context) => context
@@ -59,34 +95,16 @@ class AutoscalingPolicy(autoscalingClient: AutoscalingSparklensClient, sparkConf
     }
   }
 
-  private def createAutoscaleExec(ac: AppContext, coresPerExecutor: Int): Map[ExecutorChange, Int]
-  = {
+  private def createAutoscaleExec(ac: AppContext, coresPerExecutor: Int): Map[Int, Int] = {
     log.debug("Creating autoscaling policy based on previous run")
     val maxConcurrentExecutors = AppContext.getMaxConcurrent(ac.executorMap, ac)
 
-    var lastJobEndTime = ac.appInfo.startTime
-    var lastJobID = -1
-    val map = new mutable.HashMap[ExecutorChange, Int]
-
-
-    ac.jobMap.values.toSeq.sortWith(_.startTime < _.startTime).foreach(jobTimeSpan => {
+    ac.jobMap.values.map(jobTimeSpan => {
       val optimalExecutors = jobTimeSpan.optimumNumExecutorsForJob(coresPerExecutor,
         maxConcurrentExecutors.asInstanceOf[Int])
-
-      if (jobTimeSpan.startTime - lastJobEndTime > AutoscalingPolicy.releaseTimeout) {
-        log.debug(s"Exec: job: ${lastJobID} end, num = 0")
-        map.put(ExecutorChange(lastJobID, false), 0)
-      }
-
-      log.debug(s"Exec: job: ${jobTimeSpan.jobID} start, num = ${optimalExecutors}")
-      map.put(ExecutorChange(jobTimeSpan.jobID.toInt, true), optimalExecutors)
-      lastJobEndTime = jobTimeSpan.endTime
-      lastJobID = jobTimeSpan.jobID.toInt
-    })
-    log.debug(s"Exec: job: ${lastJobID} end, num = 0")
-
-    map.put(ExecutorChange(lastJobID, false), 0)
-    map.toMap
+      log.debug(s"Executors required for job = ${jobTimeSpan.jobID} = ${optimalExecutors}")
+      jobTimeSpan.jobID.asInstanceOf[Int] -> optimalExecutors
+    }).toMap
   }
 
   def scale(jobStart: SparkListenerJobStart): Unit = {
@@ -97,7 +115,7 @@ class AutoscalingPolicy(autoscalingClient: AutoscalingSparklensClient, sparkConf
     scale(jobEnd.jobId, false)
   }
 
-  def addExecutor(executorAdded: SparkListenerExecutorAdded): Unit = {
+  def onExecutorAdded(executorAdded: SparkListenerExecutorAdded): Unit = {
     log.debug(s"Adding executor ${executorAdded.executorId}")
     currentExecutors.synchronized {
       currentExecutors.add(executorAdded.executorId)
@@ -107,7 +125,7 @@ class AutoscalingPolicy(autoscalingClient: AutoscalingSparklensClient, sparkConf
     scale(lastNumExecutorsRequested)
   }
 
-  def removeExecutor(executorRemoved: SparkListenerExecutorRemoved): Unit = {
+  def onExecutorRemoved(executorRemoved: SparkListenerExecutorRemoved): Unit = {
     currentExecutors.synchronized {
       if (!currentExecutors.contains(executorRemoved.executorId)) {
         log.warn(s"Strange that currentExecutors does not have ${executorRemoved.executorId}.")
@@ -123,9 +141,47 @@ class AutoscalingPolicy(autoscalingClient: AutoscalingSparklensClient, sparkConf
   }
 
   private def scale(jobId: Int, jobStart: Boolean): Unit = {
-    log.debug(s"scale called for jobId = ${jobId}")
-    map.get(ExecutorChange(jobId, jobStart)) match {
-      case Some(numExecs) => scale(numExecs)
+    log.debug(s"scale called for jobId = ${jobId}, job started = ${jobStart}")
+    map.get(jobId) match {
+      case Some(numExecs) =>
+        currentExecutors.synchronized {
+          jobStart match {
+            case true =>
+              initalized.getAndSet(true) match { // initial num of  executors
+                case false =>
+                  log.debug(s"Reset: Either starting, or the last job completed was more than " +
+                    s"${AutoscalingPolicy.releaseTimeout}ms before. Scaling to ${numExecs} " +
+                    s"executors specifically for job: ${jobId}")
+                  scale(numExecs)
+                case true =>
+                  log.debug(s"Adding ${numExecs} for job ${jobId} to already existing " +
+                    s"${lastNumExecutorsRequested}")
+                  scale(lastNumExecutorsRequested + numExecs)
+              }
+            case false =>
+              (lastNumExecutorsRequested - numExecs) match {
+                case 0 => // downscale only after release timeout
+                  log.debug(s"Job ${jobId} complete, will scale down to 0 only after " +
+                    s"${AutoscalingPolicy.releaseTimeout}ms if no other jobs would come in that " +
+                    s"time.")
+                  initalized.getAndSet(false)
+                  new Thread(new Runnable {
+                    override def run(): Unit = {
+                      Thread.sleep(AutoscalingPolicy.releaseTimeout)
+                      currentExecutors.synchronized {
+                        if (initalized.get() == false) {
+                          if (lastNumExecutorsRequested == numExecs) scale(0) // Still no jobs have come
+                        }
+                      }
+                    }
+                  }).start()
+                case _ =>
+                  log.debug(s"downscaling by ${numExecs} from current asked " +
+                    s"${lastNumExecutorsRequested} for job ${jobId}")
+                  scale(lastNumExecutorsRequested - numExecs) // parallel jobs, downscale
+              }
+          }
+        }
       case _ => log.debug("map was empty while trying to scale")
     }
   }
@@ -152,13 +208,20 @@ class AutoscalingPolicy(autoscalingClient: AutoscalingSparklensClient, sparkConf
       log.info(s"Asking autosclaling client to scale to ${numExecs} from previous " +
         s"${lastNumExecutorsRequested}")
       lastNumExecutorsRequested = numExecs
-      autoscalingClient.requestTotalExecutors(numExecs)
+
+      // upscale only to a max number
+      val finalNum = Math.min(numExecs, getDynamicAllocationMaxExecutors(sparkConf))
+      if (finalNum < numExecs) {
+        log.info(s"Although ${numExecs} number of executors requested, but limiting the request " +
+          s"to a maximum of ${finalNum} configured")
+      }
+      autoscalingClient.requestTotalExecutors(finalNum)
     }
   }
 }
 
 object AutoscalingPolicy {
-  val releaseTimeout = 2 * 60 * 1000  // time between 2 jobs to release all resources
+  var releaseTimeout = 2 * 60 * 1000  // time between 2 jobs to release all resources
   val log = LoggerFactory.getLogger(classOf[AutoscalingPolicy])
 
   def init(sparkConf: SparkConf): Option[AutoscalingSparklensClient] = {
@@ -188,4 +251,7 @@ object AutoscalingPolicy {
         None
     }
   }
+   def setTimeoutForUnitTest(timeout: Int): Unit = {
+     releaseTimeout = timeout
+   }
 }
