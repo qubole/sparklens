@@ -28,7 +28,8 @@ import scala.collection.mutable
 
 /*
 Keeps track of min max sum mean and variance for any metric at any level
-The mean and variance code was picked up from another spark listener
+Reference to incremental updates of variance:
+https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_Online_algorithm
  */
 
 class AggregateValue {
@@ -37,6 +38,7 @@ class AggregateValue {
   var max:      Long   = Long.MinValue
   var mean:     Double = 0.0
   var variance: Double = 0.0
+  var m2:       Double = 0.0
 
   override def toString(): String = {
     s"""{
@@ -44,6 +46,7 @@ class AggregateValue {
        | "min": ${min},
        | "max": ${max},
        | "mean": ${mean},
+       | "m2": ${m2}
        | "variance": ${variance}
        }""".stripMargin
   }
@@ -53,6 +56,7 @@ class AggregateValue {
     "min" -> min,
     "max" -> max,
     "mean" -> mean,
+    "m2" -> m2,
     "variance" -> variance)
   }
 }
@@ -67,6 +71,7 @@ object AggregateValue {
     value.max = (json \ "max").extract[Long]
     value.mean = (json \ "mean").extract[Double]
     value.variance = (json \ "variance").extract[Double]
+    value.m2 = (json \ "m2").extract[Double]
     value
   }
 }
@@ -170,7 +175,8 @@ class AggregateMetrics() {
     aggregateValue.min    = math.min(aggregateValue.min, newValue)
     val delta: Double     = newValue - aggregateValue.mean
     aggregateValue.mean  += delta/(count+1)
-    aggregateValue.variance += delta * (newValue - aggregateValue.mean)
+    aggregateValue.m2 += delta * (newValue - aggregateValue.mean)
+    aggregateValue.variance = aggregateValue.m2 / (count+1)
   }
 
   def update(tm: TaskMetrics, ti: TaskInfo): Unit = {
@@ -248,6 +254,3 @@ object AggregateMetrics extends Enumeration {
   }
 
 }
-
-
-
