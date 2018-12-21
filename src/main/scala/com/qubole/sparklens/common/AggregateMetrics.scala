@@ -71,7 +71,8 @@ object AggregateValue {
     value.max = (json \ "max").extract[Long]
     value.mean = (json \ "mean").extract[Double]
     value.variance = (json \ "variance").extract[Double]
-    value.m2 = (json \ "m2").extract[Double]
+    //making it optional for backward compatibility with sparklens.json files
+    value.m2 = (json \ "m2").extractOrElse[Double](0.0)
     value
   }
 }
