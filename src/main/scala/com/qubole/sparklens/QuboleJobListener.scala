@@ -20,12 +20,14 @@ package com.qubole.sparklens
 import java.net.URI
 
 import com.qubole.sparklens.analyzer._
+import com.qubole.sparklens.autoscaling.{AutoscalingPolicy}
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkConf
 import org.apache.spark.scheduler._
+import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -47,6 +49,9 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   protected val stageIDToJobID   = new mutable.HashMap[Int, Long]
   protected val failedStages     = new ListBuffer[String]
   protected val appMetrics       = new AggregateMetrics()
+  private var autoscalingPolicy: Option[AutoscalingPolicy] = None
+  private val log = LoggerFactory.getLogger(classOf[QuboleJobListener])
+
 
   private def hostCount():Int = hostMap.size
 
@@ -141,8 +146,20 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
 
   override def onApplicationStart(applicationStart: SparkListenerApplicationStart): Unit = {
     //println(s"Application ${applicationStart.appId} started at ${applicationStart.time}")
+    autoscalingPolicy = getAutoScalingPolicy()
     appInfo.applicationID = applicationStart.appId.getOrElse("NA")
     appInfo.startTime     = applicationStart.time
+  }
+
+  def getAutoScalingPolicy(): Option[AutoscalingPolicy] = {
+    AutoscalingPolicy.init(sparkConf) match {
+      case Some(autoscalingSparklensClient) =>
+        log.info(s"Autoscaling client for sparklens exists = ${autoscalingSparklensClient}," +
+          s" will generate sparklens autoscaling policy")
+        Some(new AutoscalingPolicy(autoscalingSparklensClient, sparkConf))
+      case None =>
+        None
+    }
   }
 
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
@@ -170,6 +187,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     }
   }
   override def onExecutorAdded(executorAdded: SparkListenerExecutorAdded): Unit = {
+    autoscalingPolicy.map(_.onExecutorAdded(executorAdded))
     val executorTimeSpan = executorMap.get(executorAdded.executorId)
     if (!executorTimeSpan.isDefined) {
       val timeSpan = new ExecutorTimeSpan(executorAdded.executorId,
@@ -187,12 +205,14 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   }
 
   override def onExecutorRemoved(executorRemoved: SparkListenerExecutorRemoved): Unit = {
+    autoscalingPolicy.map(_.onExecutorRemoved(executorRemoved))
     val executorTimeSpan = executorMap(executorRemoved.executorId)
     executorTimeSpan.setEndTime(executorRemoved.time)
     //We don't get any event for host. Will not try to check when the hosts go out of service
   }
 
   override def onJobStart(jobStart: SparkListenerJobStart) {
+    autoscalingPolicy.map(_.scale(jobStart))
     val jobTimeSpan = new JobTimeSpan(jobStart.jobId)
     jobTimeSpan.setStartTime(jobStart.time)
     jobMap(jobStart.jobId) = jobTimeSpan
@@ -202,6 +222,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   }
 
   override def onJobEnd(jobEnd: SparkListenerJobEnd): Unit = {
+    autoscalingPolicy.map(_.scale(jobEnd))
     val jobTimeSpan = jobMap(jobEnd.jobId)
     jobTimeSpan.setEndTime(jobEnd.time)
     //if we miss cleaing up tasks at end of stage, clean them after end of job

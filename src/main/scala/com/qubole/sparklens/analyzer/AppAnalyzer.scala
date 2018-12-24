@@ -20,6 +20,7 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.qubole.sparklens.common.AppContext
+import org.apache.spark.SparkConf
 
 import scala.collection.mutable.ListBuffer
 
@@ -84,6 +85,7 @@ object AppAnalyzer {
     list += new EfficiencyStatisticsAnalyzer
     list += new ExecutorWallclockAnalyzer
     list += new StageSkewAnalyzer
+    list += new AutoscaleAnalyzer
 
 
     list.foreach( x => {

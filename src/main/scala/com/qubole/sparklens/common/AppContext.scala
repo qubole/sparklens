@@ -66,11 +66,26 @@ case class AppContext(appInfo:        ApplicationInfo,
 
 object AppContext {
 
-  def getMaxConcurrent[Span <: TimeSpan](map: mutable.HashMap[String, Span],
+  def getMaxConcurrent[Span <: TimeSpan, T <: Any](map: mutable.HashMap[T, Span],
                                          appContext: AppContext = null): Long = {
 
     // sort all start and end times on basis of timing
-    val sorted = map.values.flatMap(timeSpan => {
+    val sorted = getSortedMap(map, appContext)
+
+    var count = 0L
+    var maxConcurrent = 0L
+
+    sorted.foreach(tuple => {
+      count = count + tuple._2
+      maxConcurrent = math.max(maxConcurrent, count)
+    })
+    maxConcurrent
+  }
+
+  def getSortedMap[Span <: TimeSpan, T <: Any](map: mutable.HashMap[T, Span],
+                                     appContext: AppContext = null): Array[(Long, Long)] = {
+    // sort all start and end times on basis of timing
+    map.values.flatMap(timeSpan => {
       val correctedEndTime = if (timeSpan.endTime == 0) {
         if (appContext == null || appContext.appInfo.endTime == 0) {
           System.currentTimeMillis()
@@ -84,15 +99,6 @@ object AppContext {
           t1._2 > t2._2
         } else t1._1 < t2._1
       })
-
-    var count = 0L
-    var maxConcurrent = 0L
-
-    sorted.foreach(tuple => {
-      count = count + tuple._2
-      maxConcurrent = math.max(maxConcurrent, count)
-    })
-    maxConcurrent
   }
 
   def getMap[T](map: mutable.HashMap[T, _ <: TimeSpan]): Map[String, Any] = {

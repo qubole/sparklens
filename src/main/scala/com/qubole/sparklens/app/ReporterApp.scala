@@ -71,15 +71,19 @@ object ReporterApp extends App {
   }
 
   private def reportFromSparklensDump(file: String): Unit = {
+    val json = readSparklenDump(file)
+    startAnalysersFromString(json)
+
+  }
+
+  def readSparklenDump(file: String): String = {
     val fs = FileSystem.get(new URI(file), new Configuration())
 
     val path = new Path(file)
     val byteArray = new Array[Byte](fs.getFileStatus(path).getLen.toInt)
     fs.open(path).readFully(byteArray)
 
-    val json = (byteArray.map(_.toChar)).mkString
-    startAnalysersFromString(json)
-
+    (byteArray.map(_.toChar)).mkString
   }
 
   def reportFromEventHistory(file: String): Unit = {

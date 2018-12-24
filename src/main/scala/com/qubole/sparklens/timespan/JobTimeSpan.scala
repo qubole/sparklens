@@ -18,6 +18,7 @@
 package com.qubole.sparklens.timespan
 
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext}
+import com.qubole.sparklens.scheduler.CompletionEstimator
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
 import org.json4s.DefaultFormats
@@ -90,6 +91,23 @@ class JobTimeSpan(val jobID: Long) extends TimeSpan {
       "jobMetrics" -> jobMetrics.getMap,
       "stageMap" -> AppContext.getMap(stageMap)) ++ super.getStartEndTime()
   }
+
+  def optimumNumExecutorsForJob(coresPerExecutor: Int, maxConcurrent: Int): Int = {
+    val realTime = this.endTime - this.startTime
+    var high = maxConcurrent
+    var low = 1
+    while(high != low) {
+      val mid = (low + high) / 2
+
+      val simulationTime = CompletionEstimator.estimateJobWallClockTime(this, mid, coresPerExecutor)
+      if (simulationTime <= realTime) {
+        high = mid
+      } else low = mid + 1
+    }
+    low
+  }
+
+
 }
 
 object JobTimeSpan {
