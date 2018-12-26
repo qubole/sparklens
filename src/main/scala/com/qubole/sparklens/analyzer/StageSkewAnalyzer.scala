@@ -58,6 +58,7 @@ class StageSkewAnalyzer extends  AppAnalyzer {
 
   def computePerStageEfficiencyStatistics(ac: AppContext, out: mutable.StringBuilder): Unit = {
 
+
     val totalTasks = ac.stageMap.map(x => x._2.taskExecutionTimes.length).sum
     out.println (s"Total tasks in all stages ${totalTasks}")
 
@@ -68,15 +69,22 @@ class StageSkewAnalyzer extends  AppAnalyzer {
     out.println (s"          Clock%  Runtime%   Count                               Input  |  Output    Measured | Ideal   Available| Used%|Wasted%                                  ")
 
     val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap, ac)
-    val totalCores = ac.executorMap.values.last.cores * maxExecutors
+    val executorCores = AppContext.getExecutorCores(ac)
+    val totalCores =  executorCores * maxExecutors
     val totalMillis = ac.stageMap.map(x =>
         x._2.duration().getOrElse(0L)
     ).sum * totalCores
 
-    val totalRuntime = ac.stageMap.map(x =>
-                              x._2.stageMetrics.map(AggregateMetrics.executorRuntime).value).sum
+    val totalRuntime = ac.stageMap.map(x => {
+      if (x._2.stageMetrics.map.isDefinedAt(AggregateMetrics.executorRuntime)) {
+        x._2.stageMetrics.map(AggregateMetrics.executorRuntime).value
+      } else {
+        //Can't calculate any report here unless we have these metrics
+        return
+      }
+    }
+    ).sum
 
-    val totalExecutors = ac.executorMap.size
     val totalIOBytes   = ac.jobMap.values.map ( x => (  x.jobMetrics.map(AggregateMetrics.inputBytesRead).value
                                                       + x.jobMetrics.map(AggregateMetrics.outputBytesWritten).value
                                                       + x.jobMetrics.map(AggregateMetrics.shuffleWriteBytesWritten).value
@@ -96,7 +104,6 @@ class StageSkewAnalyzer extends  AppAnalyzer {
         val wasted    = available - used
         val usedPercent = (used * 100)/available.toFloat
         val wastedPercent = (wasted * 100)/available.toFloat
-        val executorCores = totalCores/totalExecutors
         val stageBytes = sts.stageMetrics.map(AggregateMetrics.inputBytesRead).value
                        + sts.stageMetrics.map(AggregateMetrics.outputBytesWritten).value
                        + sts.stageMetrics.map(AggregateMetrics.shuffleWriteBytesWritten).value
@@ -106,7 +113,7 @@ class StageSkewAnalyzer extends  AppAnalyzer {
       //val maxTaskMemoryUtilization = (maxTaskMemory*100)/executorMemory
         val IOPercent = (stageBytes* 100)/ totalIOBytes.toFloat
         val taskRuntimePercent = (sts.stageMetrics.map(AggregateMetrics.executorRuntime).value * 100)/totalRuntime.toFloat
-        val idealWallClock = sts.stageMetrics.map(AggregateMetrics.executorRuntime).value/(totalExecutors * executorCores)
+        val idealWallClock = sts.stageMetrics.map(AggregateMetrics.executorRuntime).value/(maxExecutors * executorCores)
 
         out.println (f"${x}%8s   ${stagePercent}%5.2f   ${taskRuntimePercent}%5.2f   ${sts.taskExecutionTimes.length}%7s  " +
           f"${IOPercent}%5.1f  ${bytesToString(sts.stageMetrics.map(AggregateMetrics.inputBytesRead).value)}%8s " +
@@ -116,9 +123,10 @@ class StageSkewAnalyzer extends  AppAnalyzer {
           f"${pd(duration)}   ${pd(idealWallClock)} ${pcm(available)}%10s  $usedPercent%5.1f  $wastedPercent%5.1f  ${bytesToString(maxTaskMemory)}%8s ")
     })
 
-    val maxMem = ac.stageMap.keySet.map(key => {
-      ac.stageMap.get(key).get.taskPeakMemoryUsage.take((totalCores/totalExecutors).toInt).sum
-    }).toSeq.sorted.last
+    val maxMem =
+      ac.stageMap.keySet.map(key => {
+        ac.stageMap.get(key).get.taskPeakMemoryUsage.take(executorCores).sum
+      }).toSeq.sorted.lastOption.getOrElse(0L)
     out.println(f"Max memory which an executor could have taken = ${bytesToString(maxMem)}%8s")
 
     out.println("\n")
@@ -126,7 +134,8 @@ class StageSkewAnalyzer extends  AppAnalyzer {
 
   def checkForGCOrShuffleService(ac: AppContext, out: mutable.StringBuilder): Unit = {
     val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap, ac)
-    val totalCores = ac.executorMap.values.last.cores * maxExecutors
+    val executorCores = AppContext.getExecutorCores(ac)
+    val totalCores =  executorCores * maxExecutors
     val totalMillis = ac.stageMap.filter(x => x._2.endTime > 0).map(x => x._2.duration().get).sum * totalCores
     out.println (s" Stage-ID WallClock  OneCore       Task   PRatio    -----Task------   OIRatio  |* ShuffleWrite% ReadFetch%   GC%  *|")
     out.println (s"          Stage%     ComputeHours  Count            Skew   StageSkew                                                ")

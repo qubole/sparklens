@@ -33,8 +33,8 @@ class ExecutorWallclockAnalyzer extends  AppAnalyzer {
     val ac = appContext.filterByStartAndEndTime(startTime, endTime)
     val out = new mutable.StringBuilder()
 
-    val coresPerExecutor    =  ac.executorMap.values.map(x => x.cores).sum/ac.executorMap.size
-    val appExecutorCount    =  ac.executorMap.size
+    val coresPerExecutor    =  AppContext.getExecutorCores(ac)
+    val appExecutorCount    =  AppContext.getMaxConcurrent(ac.executorMap, ac).toInt
     val testPercentages     =  Array(10, 20, 50, 80, 100, 110, 120, 150, 200, 300, 400, 500)
 
     out.println ("\n App completion time and cluster utilization estimates with different executor counts")
@@ -50,7 +50,9 @@ class ExecutorWallclockAnalyzer extends  AppAnalyzer {
           val executorCount = (appExecutorCount * percent)/100
           if (executorCount > 0) {
             val estimatedTime = CompletionEstimator.estimateAppWallClockTime(ac, executorCount, coresPerExecutor, appRealDuration)
-            val utilization =  ac.stageMap.map(x => x._2.stageMetrics.map(AggregateMetrics.executorRuntime).value).sum.toDouble*100/(estimatedTime*executorCount*coresPerExecutor)
+            val utilization =
+              ac.stageMap.filter(x => x._2.stageMetrics.map.isDefinedAt(AggregateMetrics.executorRuntime))
+                .map(x => x._2.stageMetrics.map(AggregateMetrics.executorRuntime).value).sum.toDouble*100/(estimatedTime*executorCount*coresPerExecutor)
             results.synchronized {
               results(percent) = f" Executor count ${executorCount}%5s  ($percent%3s%%) estimated time ${pd(estimatedTime)} and estimated cluster utilization ${utilization}%3.2f%%"
             }
@@ -82,8 +84,9 @@ class ExecutorWallclockAnalyzer extends  AppAnalyzer {
   }
 
   def printModelError(ac: AppContext, appRealDuration: Long, out: mutable.StringBuilder): Unit = {
-    val coresPerExecutor    =  ac.executorMap.values.map(x => x.cores).sum/ac.executorMap.size
-    val appExecutorCount    =  ac.executorMap.size
+    val appExecutorCount = AppContext.getMaxConcurrent(ac.executorMap, ac).toInt
+    val coresPerExecutor = AppContext.getExecutorCores(ac)
+
     @volatile var estimatedTime: Long = -1
     val thread = new Thread {
       override def run(): Unit = {

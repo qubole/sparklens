@@ -106,6 +106,11 @@ object CompletionEstimator {
   }
 
   def estimateJobWallClockTime(jobTimeSpan: JobTimeSpan, executorCount: Int, perExecutorCores:Int): Long = {
+    if (jobTimeSpan.stageMap.isEmpty) {
+      //Job has no stages and no tasks?
+      //we assume that such a job will run in same time irrespective of number of cores
+      return jobTimeSpan.duration().getOrElse(0)
+    }
     val maxStageID = jobTimeSpan.stageMap.map(x => x._1).max
     val data = jobTimeSpan.stageMap.map(x => (x._1, ( x._2.taskExecutionTimes, x._2.parentStageIDs))).toMap
     val taskCountMap = new mutable.HashMap[Int, Int]()

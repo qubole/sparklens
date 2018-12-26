@@ -32,7 +32,9 @@ class EfficiencyStatisticsAnalyzer extends  AppAnalyzer {
     val appTotalTime = endTime - startTime
     // wall clock time per Job. Aggregated
     val jobTime   = ac.jobMap.values
-      .map(x => (x.endTime - x.startTime))
+      .filter(x => x.endTime >= x.startTime) //remove jobs for which we don't have end time. This is wrong but it is
+                                             // better than negative values for job completion time
+      .map(x => x.endTime - x.startTime)
       .sum
 
     /* sum of cores in all the executors:
@@ -41,7 +43,9 @@ class EfficiencyStatisticsAnalyzer extends  AppAnalyzer {
      * multiplying it by num-cores per executor (assuming homogenous cluster)
      */
     val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap, ac)
-    val totalCores = ac.executorMap.values.last.cores * maxExecutors
+    val executorCores = AppContext.getExecutorCores(ac)
+    val totalCores = executorCores * maxExecutors
+
     // total compute millis available to the application
     val appComputeMillisAvailable = totalCores * appTotalTime
     val computeMillisFromExecutorLifetime = ac.executorMap.map( x => {
@@ -68,14 +72,12 @@ class EfficiencyStatisticsAnalyzer extends  AppAnalyzer {
 
     //sum of millis used by all tasks of all jobs
     val inJobComputeMillisUsed  = ac.jobMap.values
-      .filter(x => x.endTime > 0).map(x =>
-      x.jobMetrics.map(AggregateMetrics.executorRuntime).value)
+      .filter(x => x.endTime > 0)
+      .filter(x => x.jobMetrics.map.isDefinedAt(AggregateMetrics.executorRuntime))
+      .map(x => x.jobMetrics.map(AggregateMetrics.executorRuntime).value)
       .sum
 
-    val perfectJobTime  = ac.jobMap.values
-      .filter(x => x.endTime > 0)
-      .map(x => x.jobMetrics.map(AggregateMetrics.executorRuntime).value).sum/totalCores
-
+    val perfectJobTime  = inJobComputeMillisUsed/totalCores
     //Enough variables lets print some
 
     val driverTimeJobBased = appTotalTime - jobTime
