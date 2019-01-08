@@ -14,7 +14,7 @@ import org.json4s.jackson.JsonMethods.parse
 import org.xerial.snappy.SnappyInputStream
 
 
-class EventHistoryReporter(file: String) {
+class EventHistoryReporter(file: String, extraConf: List[(String, String)] = List.empty) {
 
   // This is using reflection in spark-2.0.0 ReplayListenerBus
   val busKlass = Class.forName("org.apache.spark.scheduler.ReplayListenerBus")
@@ -23,6 +23,11 @@ class EventHistoryReporter(file: String) {
   val conf = new SparkConf()
     .set("spark.sparklens.reporting.disabled", "false")
     .set("spark.sparklens.save.data", "false")
+
+  extraConf.foreach(x => {
+    conf.set(x._1, x._2)
+  })
+
   val listener = new QuboleJobListener(conf)
   addListenerMethod.invoke(bus, listener)
 
@@ -32,12 +37,14 @@ class EventHistoryReporter(file: String) {
       classOf[Boolean])
     replayMethod.invoke(bus, getDecodedInputStream(file, conf), file, boolean2Boolean(false))
   } catch {
-    case e: NoSuchMethodException => // spark binaries are 2.1* and above
+    case _: NoSuchMethodException => // spark binaries are 2.1* and above
       val replayMethod = busKlass.getMethod("replay", classOf[InputStream], classOf[String],
         classOf[Boolean], classOf[String => Boolean])
       replayMethod.invoke(bus, getDecodedInputStream(file, conf), file, boolean2Boolean(false),
         getFilter _)
-
+    case x: Exception => {
+     println(s"Failed replaying events from ${file} [${x.getMessage}]")
+    }
   }
 
 

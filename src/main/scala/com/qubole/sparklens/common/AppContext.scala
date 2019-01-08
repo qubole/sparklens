@@ -61,7 +61,6 @@ case class AppContext(appInfo:        ApplicationInfo,
     )
     Serialization.writePretty(map)
   }
-
 }
 
 object AppContext {
@@ -108,11 +107,14 @@ object AppContext {
   }
 
   def getMap[T](map: mutable.HashMap[T, _ <: TimeSpan]): Map[String, Any] = {
-
-    map.keys.last match {
-      case _: String | _: Long | _: Int =>
-        map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap
-      case _ => throw new RuntimeException("Unknown map key type")
+    if (map.isEmpty) {
+      Map.empty[String, Any]
+    } else {
+      map.keys.last match {
+        case _: String | _: Long | _: Int =>
+          map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap
+        case _ => throw new RuntimeException("Unknown map key type")
+      }
     }
   }
 
