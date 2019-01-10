@@ -10,6 +10,14 @@ from scaling out and provides contextual information about what could be going w
 it helps you approach spark application tuning as a well defined method/process instead of something you learn by 
 trial and error, saving both developer and compute time. 
 
+### Sparklens Reporting as a Service ####
+
+http://sparklens.qubole.com is a reporting service built on top of Sparklens. This service was built to lower the pain of sharing and discussing Sparklens 
+output. Users can upload the Sparklens JSON file to this service and retrieve a global sharable 
+link. The link delivers the Sparklens report in an easy-to-consume HTML format with intuitive 
+charts and animations. It is also useful to have a link for easy reference for yourself, in case 
+some code changes result in lower utilization or make the application slower.
+
 ### What does it reports? ###
 
 * Estimated completion time and estimated cluster utilisation with different number of executors
@@ -79,7 +87,7 @@ spark users can help us in finding what is missing here by raising challenging t
 
 Use the following arguments in spark-submit or spark-shell:
 ```
---packages qubole:sparklens:0.2.0-s_2.11
+--packages qubole:sparklens:0.2.1-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
@@ -88,27 +96,34 @@ Use the following arguments in spark-submit or spark-shell:
 You can choose not to run sparklens inside the app, but at a later time. Run you app as above 
 with an additional conf:
 ```
---packages qubole:sparklens:0.2.0-s_2.11
+--packages qubole:sparklens:0.2.1-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 --conf spark.sparklens.reporting.disabled=true
 ```
 
-This will not run reporting, but instead create a sparklens data file for the application which is 
+This will not run reporting, but instead create a sparklens json file for the application which is 
 stored at **spark.sparklens.data.dir** directory (by default it is **/tmp/sparklens/**). This 
 data-file can now be used to run sparklens independently, using spark-submit command as follows:
 
-`./bin/spark-submit --packages qubole:sparklens:0.2.0-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
+`./bin/spark-submit --packages qubole:sparklens:0.2.1-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
 
-`<filename>` should be replaced by the full path of sparklens data file.
+`<filename>` should be replaced by the full path of sparklens json file.
+
+You can also upload sparklens json data file to http://sparklens.qubole.com to see this report as a HTML page. 
 
 #### 3. Run from spark event-history file ####
 
 You can run sparklens on a previously run spark-app using event-history file also, (similar to 
-running via sparklens-data-file above) with another option specifying that is file is an 
+running via sparklens-json-file above) with another option specifying that is file is an 
 event-history file. This file can be in any of the formats event-history files supports, i.e. **text, snappy, lz4 
 or lzf**. Note the extra `source=history` parameter in this example:
 
-`./bin/spark-submit --packages qubole:sparklens:0.2.0-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
+`./bin/spark-submit --packages qubole:sparklens:0.2.1-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
+
+It is also possible to convert event history file to sparklens json file using the following command:
+
+`./bin/spark-submit --packages qubole:sparklens:0.2.1-s_2.11 --class com.qubole.sparklens.app.EventHistoryToSparklensJson qubole-dummy-arg <srcDir> <targetDir>`
+
 
 #### 4. Checkout the code and use the normal sbt commands: #### 
 
@@ -208,6 +223,9 @@ We will be making this part configurable.
 * Introduction to Sparklens https://www.qubole.com/blog/introducing-quboles-spark-tuning-tool/
 * Video from meetup. Concepts behind Sparklens https://www.youtube.com/watch?v=0a2U4_6zsCc
 * Slides from meetup. https://lnkd.in/fCsrKXj
+* Video from Fifth Elephant Conference  https://www.youtube.com/watch?v=SOFztF-3GGk
+* Video from Spark AI Summit London 2018  https://www.youtube.com/watch?v=KS5vRZPLo6c
+
 
 ### Contributing ###
 We haven't given much thought. Just raise a PR and if you don't hear from us, shoot an email to 
