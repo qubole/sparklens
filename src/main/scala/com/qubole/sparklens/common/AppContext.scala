@@ -61,7 +61,6 @@ case class AppContext(appInfo:        ApplicationInfo,
     )
     Serialization.writePretty(map)
   }
-
 }
 
 object AppContext {
@@ -92,15 +91,30 @@ object AppContext {
       count = count + tuple._2
       maxConcurrent = math.max(maxConcurrent, count)
     })
-    maxConcurrent
+
+    //when running in local mode, we don't get
+    //executor added event. Default to 1 instead of 0
+    math.max(maxConcurrent, 1)
+  }
+
+  def getExecutorCores(ac: AppContext): Int = {
+    if (ac.executorMap.values.lastOption.isDefined) {
+      ac.executorMap.values.last.cores
+    } else {
+      //using default 1 core
+      1
+    }
   }
 
   def getMap[T](map: mutable.HashMap[T, _ <: TimeSpan]): Map[String, Any] = {
-
-    map.keys.last match {
-      case _: String | _: Long | _: Int =>
-        map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap
-      case _ => throw new RuntimeException("Unknown map key type")
+    if (map.isEmpty) {
+      Map.empty[String, Any]
+    } else {
+      map.keys.last match {
+        case _: String | _: Long | _: Int =>
+          map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap
+        case _ => throw new RuntimeException("Unknown map key type")
+      }
     }
   }
 
