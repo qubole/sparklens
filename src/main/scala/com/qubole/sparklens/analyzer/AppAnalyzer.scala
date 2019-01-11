@@ -42,7 +42,7 @@ trait AppAnalyzer {
   print time
    */
   def pt(x: Long) : String = {
-    DF.format(new  Date(x))
+    DF.format(new Date(x))
   }
   /*
   print duration
