@@ -43,6 +43,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   protected val executorMap      = new mutable.HashMap[String, ExecutorTimeSpan]()
   protected val hostMap          = new mutable.HashMap[String, HostTimeSpan]()
   protected val jobMap           = new mutable.HashMap[Long, JobTimeSpan]
+  protected val jobSQLExecIDMap  = new mutable.HashMap[Long, Long]
   protected val stageMap         = new mutable.HashMap[Int, StageTimeSpan]
   protected val stageIDToJobID   = new mutable.HashMap[Int, Long]
   protected val failedStages     = new ListBuffer[String]
@@ -146,7 +147,6 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   }
 
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
-    stageMap.map(x => x._2).foreach( x => x.tempTaskTimes.clear())
     //println(s"Application ${appInfo.applicationID} ended at ${applicationEnd.time}")
     appInfo.endTime = applicationEnd.time
 
@@ -155,6 +155,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
       hostMap,
       executorMap,
       jobMap,
+      jobSQLExecIDMap,
       stageMap,
       stageIDToJobID)
 
@@ -199,13 +200,15 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     jobStart.stageIds.foreach( stageID => {
       stageIDToJobID(stageID) = jobStart.jobId
     })
+    val sqlExecutionID = jobStart.properties.getProperty("spark.sql.execution.id")
+    if (sqlExecutionID != null && !sqlExecutionID.isEmpty) {
+      jobSQLExecIDMap(jobStart.jobId) = sqlExecutionID.toLong
+    }
   }
 
   override def onJobEnd(jobEnd: SparkListenerJobEnd): Unit = {
     val jobTimeSpan = jobMap(jobEnd.jobId)
     jobTimeSpan.setEndTime(jobEnd.time)
-    //if we miss cleaing up tasks at end of stage, clean them after end of job
-    stageMap.map(x => x._2).foreach( x => x.tempTaskTimes.clear())
   }
 
   override def onStageSubmitted(stageSubmitted: SparkListenerStageSubmitted): Unit = {
@@ -242,6 +245,5 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
       jobTimeSpan.addStage(stageTimeSpan)
       stageTimeSpan.finalUpdate()
     }
-    stageTimeSpan.tempTaskTimes.clear()
   }
 }

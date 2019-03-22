@@ -123,6 +123,7 @@ class QuboleNotebookListener(sparkConf: SparkConf) extends QuboleJobListener(spa
       hostMap,
       executorMap,
       jobMap,
+      jobSQLExecIDMap,
       stageMap,
       stageIDToJobID)
 

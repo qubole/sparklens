@@ -28,6 +28,7 @@ case class AppContext(appInfo:        ApplicationInfo,
                       hostMap:        mutable.HashMap[String, HostTimeSpan],
                       executorMap:    mutable.HashMap[String, ExecutorTimeSpan],
                       jobMap:         mutable.HashMap[Long, JobTimeSpan],
+                      jobSQLExecIdMap:mutable.HashMap[Long, Long],
                       stageMap:       mutable.HashMap[Int, StageTimeSpan],
                       stageIDToJobID: mutable.HashMap[Int, Long]) {
 
@@ -42,6 +43,7 @@ case class AppContext(appInfo:        ApplicationInfo,
       jobMap
         .filter(x => x._2.startTime >= startTime &&
                      x._2.endTime <= endTime),
+      jobSQLExecIdMap,
       stageMap
         .filter(x => x._2.startTime >= startTime &&
                      x._2.endTime <= endTime),
@@ -56,6 +58,7 @@ case class AppContext(appInfo:        ApplicationInfo,
       "hostMap" -> AppContext.getMap(hostMap),
       "executorMap" -> AppContext.getMap(executorMap),
       "jobMap" -> AppContext.getMap(jobMap),
+      "jobSQLExecIdMap" -> jobSQLExecIdMap,
       "stageMap" -> AppContext.getMap(stageMap),
       "stageIDToJobID" -> stageIDToJobID
     )
@@ -128,6 +131,7 @@ object AppContext {
       HostTimeSpan.getTimeSpan((json \ "hostMap").extract[Map[String, JValue]]),
       ExecutorTimeSpan.getTimeSpan((json \ "executorMap").extract[Map[String, JValue]]),
       JobTimeSpan.getTimeSpan((json \ "jobMap").extract[Map[String, JValue]]),
+      getLongToLongMap((json \ "jobSQLExecIdMap").extract[Map[Long, JValue]]),
       StageTimeSpan.getTimeSpan((json \ "stageMap").extract[Map[String, JValue]]),
       getJobToStageMap((json \ "stageIDToJobID").extract[Map[Int, JValue]])
     )
@@ -136,6 +140,16 @@ object AppContext {
   private def getJobToStageMap(json: Map[Int, JValue]): mutable.HashMap[Int, Long] = {
     implicit val formats = DefaultFormats
     val map = new mutable.HashMap[Int, Long]()
+
+    json.keys.map(key => {
+      map.put(key, json.get(key).get.extract[Long])
+    })
+    map
+  }
+
+  private def getLongToLongMap(json: Map[Long, JValue]): mutable.HashMap[Long, Long] = {
+    implicit val formats = DefaultFormats
+    val map = new mutable.HashMap[Long, Long]()
 
     json.keys.map(key => {
       map.put(key, json.get(key).get.extract[Long])
