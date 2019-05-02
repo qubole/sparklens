@@ -69,11 +69,14 @@ object CompletionEstimator {
     }
   }
 
-  private def processStages(maxStageID: Int, estate: EstimatorState,  scheduler: PQParallelStageScheduler): Long = {
+  private def processStages(maxStageIDs: List[Int], estate: EstimatorState,  scheduler: PQParallelStageScheduler): Long = {
     //In the worst case we need to push all stages to completion
     val MAX_COMPLETION_TRIES = estate.stagesData.size+1
     var completionRetries = 0
-    while (!scheduler.isStageComplete(maxStageID) && (completionRetries < MAX_COMPLETION_TRIES)) {
+    while (!maxStageIDs
+        .map(scheduler.isStageComplete(_))
+        .forall(_ == true)
+            && (completionRetries < MAX_COMPLETION_TRIES)) {
       if (estate.runnableStages.nonEmpty) {
         val copyOfRunningStages = estate.runnableStages.clone()
         val eligibleStages = copyOfRunningStages.filterNot(stageID => estate.runningStages.contains(stageID))
@@ -103,7 +106,7 @@ object CompletionEstimator {
       println(s"runnableStages ${estate.runnableStages}")
       println(s"runningStages ${estate.runningStages}")
       println(s"waitingStages ${estate.waitingStages}")
-      println(s"maxStageID ${maxStageID}")
+      println(s"maxStageIDs ${maxStageIDs}")
       0L
     }else {
       scheduler.wallClockTime()
@@ -135,7 +138,7 @@ object CompletionEstimator {
       }
     }
     scheduleStage(maxStageID, estate, scheduler)
-    processStages(maxStageID, estate, scheduler)
+    processStages(List(maxStageID), estate, scheduler)
   }
 
 
@@ -187,8 +190,8 @@ object CompletionEstimator {
 
     //TODO: we might need to revisit this. Not sure if we should work with a single maxStageID now or switch to
     //list of maxStageIDs, one each for each parallel job.
-    val maxStageID = realJobTimeSpans.map (x => x.stageMap.map(x => x._1).max).max
-    processStages(maxStageID, estate, scheduler)
+    val maxStageIDs = realJobTimeSpans.map (x => x.stageMap.map(x => x._1).max)
+    processStages(maxStageIDs, estate, scheduler)
   }
 
   @deprecated
