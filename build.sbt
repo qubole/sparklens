@@ -47,5 +47,10 @@ pomExtra :=
       <name>Anirudh Beria</name>
       <url>https://github.com/beriaanirudh</url>
     </developer>
+    <developer>
+      <id>mayurdb</id>
+      <name>Mayur Bhosale</name>
+      <url>https://github.com/mayurdb</url>
+    </developer>
   </developers>
 
