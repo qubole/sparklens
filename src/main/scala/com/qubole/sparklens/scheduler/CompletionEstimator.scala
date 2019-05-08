@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit
 import com.qubole.sparklens.analyzer.JobOverlapAnalyzer
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext}
 import com.qubole.sparklens.timespan.JobTimeSpan
+import com.qubole.sparklens.helper.JobOverlapHelper
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -222,7 +223,7 @@ object CompletionEstimator {
     * is to first group them by sql.execution.id and then split these groups based on actual observed
     * parallelism. We look at jobs within a group sorted by start time, looking at pair at a time. If the
     * pair has some overlap in time, we assume they run in parallel. If we see a clean split, we split the
-    * group.  The code is here: JobOverlapAnalyzer.makeJobLists
+    * group.  The code is here: JobOverlapHelper.makeJobLists
     *
     * @param ac
     * @param executorCount
@@ -232,10 +233,10 @@ object CompletionEstimator {
     */
   def estimateAppWallClockTimeWithJobLists(ac: AppContext, executorCount: Int, perExecutorCores:Int, appRealDuration: Long): Long = {
     val appTotalTime = appRealDuration
-    val jobGroupsList = JobOverlapAnalyzer.makeJobLists(ac)
+    val jobGroupsList = JobOverlapHelper.makeJobLists(ac)
     // for each group we take the processing time as min of start time and max of end time from all the
     // jobs that are part of the group
-    val jobTime  = JobOverlapAnalyzer.estimatedTimeSpentInJobs(ac)
+    val jobTime  = JobOverlapHelper.estimatedTimeSpentInJobs(ac)
     val driverTimeJobBased = appTotalTime - jobTime
     jobGroupsList.map(x => {
         estimateJobListWallClockTime(x,

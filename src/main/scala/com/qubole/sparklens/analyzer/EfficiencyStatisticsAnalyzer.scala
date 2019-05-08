@@ -18,6 +18,8 @@
 package com.qubole.sparklens.analyzer
 
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext}
+import com.qubole.sparklens.helper.JobOverlapHelper
+
 import scala.collection.mutable
 
 /*
@@ -31,7 +33,7 @@ class EfficiencyStatisticsAnalyzer extends  AppAnalyzer {
     // wall clock time, appEnd - appStart
     val appTotalTime = endTime - startTime
     // wall clock time per Job. Aggregated
-    val jobTime   = JobOverlapAnalyzer.estimatedTimeSpentInJobs(ac)
+    val jobTime = JobOverlapHelper.estimatedTimeSpentInJobs(ac)
     /* sum of cores in all the executors:
      * There are executors coming up and going down.
      * We are taking the max-number of executors running at any point of time, and
@@ -63,7 +65,7 @@ class EfficiencyStatisticsAnalyzer extends  AppAnalyzer {
     // which is in the critical path. Note that some stages can run in parallel
     // we cannot reduce the job time to less than this number.
     // Aggregating over all jobs, to get the lower bound on this time.
-    val criticalPathTime = JobOverlapAnalyzer.criticalPathForAllJobs(ac)
+    val criticalPathTime = JobOverlapHelper.criticalPathForAllJobs(ac)
 
     //sum of millis used by all tasks of all jobs
     val inJobComputeMillisUsed  = ac.jobMap.values

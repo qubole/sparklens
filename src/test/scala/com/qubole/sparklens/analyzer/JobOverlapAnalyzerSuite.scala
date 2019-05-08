@@ -20,6 +20,7 @@ package com.qubole.sparklens.analyzer
 
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
+import com.qubole.sparklens.helper.JobOverlapHelper
 
 import org.scalatest.FunSuite
 
@@ -71,7 +72,7 @@ class JobOverlapAnalyzerSuite extends FunSuite {
   test("JobOverlapAnalyzerTest: Jobs running in parallel should be considered while computing " +
     "estimated time spent in Jobs") {
     val ac = createDummyAppContext()
-    val jobTime = JobOverlapAnalyzer.estimatedTimeSpentInJobs(ac)
+    val jobTime = JobOverlapHelper.estimatedTimeSpentInJobs(ac)
     assert(jobTime == 10, "Parallel Jobs are not being considered while computing the time spent in jobs")
   }
 }
