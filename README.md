@@ -232,7 +232,7 @@ We will be making this part configurable.
 - [04/06/2018] Version 0.1.2 - Package name fixes
 - [08/07/2018] Version 0.2.0 - Support for offline reporting
 - [01/10/2019] Version 0.2.1 - Stability fixes
-- [05/10/2019] Version 0.2.2 - Support for handling parallel Jobs
+- [05/10/2019] Version 0.3.0 - Support for handling parallel Jobs
 
 ## Contributing
 We haven't given much thought. Just raise a PR and if you don't hear from us, shoot an email to 
