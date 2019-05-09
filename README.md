@@ -81,13 +81,13 @@ Following Analyzers are currently available:
 We are hoping that spark experts world over will help us with ideas or contributions to extend this set. And similarly 
 spark users can help us in finding what is missing here by raising challenging tuning questions.   
 
-### How to use Sparklens? ###
+## How to use Sparklens?
 
 #### 1. Using the sparklens package while running your app #### 
 
 Use the following arguments in spark-submit or spark-shell:
 ```
---packages qubole:sparklens:0.2.1-s_2.11
+--packages qubole:sparklens:0.3.0-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
@@ -96,7 +96,7 @@ Use the following arguments in spark-submit or spark-shell:
 You can choose not to run sparklens inside the app, but at a later time. Run you app as above 
 with an additional conf:
 ```
---packages qubole:sparklens:0.2.1-s_2.11
+--packages qubole:sparklens:0.3.0-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 --conf spark.sparklens.reporting.disabled=true
 ```
@@ -105,7 +105,7 @@ This will not run reporting, but instead create a sparklens json file for the ap
 stored at **spark.sparklens.data.dir** directory (by default it is **/tmp/sparklens/**). This 
 data-file can now be used to run sparklens independently, using spark-submit command as follows:
 
-`./bin/spark-submit --packages qubole:sparklens:0.2.1-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
+`./bin/spark-submit --packages qubole:sparklens:0.3.0-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
 
 `<filename>` should be replaced by the full path of sparklens json file.
 
@@ -118,11 +118,11 @@ running via sparklens-json-file above) with another option specifying that is fi
 event-history file. This file can be in any of the formats event-history files supports, i.e. **text, snappy, lz4 
 or lzf**. Note the extra `source=history` parameter in this example:
 
-`./bin/spark-submit --packages qubole:sparklens:0.2.1-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
+`./bin/spark-submit --packages qubole:sparklens:0.3.0-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
 
 It is also possible to convert event history file to sparklens json file using the following command:
 
-`./bin/spark-submit --packages qubole:sparklens:0.2.1-s_2.11 --class com.qubole.sparklens.app.EventHistoryToSparklensJson qubole-dummy-arg <srcDir> <targetDir>`
+`./bin/spark-submit --packages qubole:sparklens:0.3.0-s_2.11 --class com.qubole.sparklens.app.EventHistoryToSparklensJson qubole-dummy-arg <srcDir> <targetDir>`
 
 
 #### 4. Checkout the code and use the normal sbt commands: #### 
@@ -137,7 +137,7 @@ scala 2.11.8 and spark versions 2.0.0 onwards.
 
 Once you have the Sparklens jar available, add the following options to your spark submit command line:
 ```
---jars /path/to/sparklens_2.11-0.1.0.jar 
+--jars /path/to/sparklens_2.11-0.3.0.jar 
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 You could also add this to your cluster's **spark-defaults.conf** so that it is automatically available for all applications.
@@ -227,7 +227,6 @@ We will be making this part configurable.
 * Video from Spark AI Summit London 2018  https://www.youtube.com/watch?v=KS5vRZPLo6c
 
 ## Release Notes
-
 - [03/20/2018] Version 0.1.1 - Sparklens Core
 - [04/06/2018] Version 0.1.2 - Package name fixes
 - [08/07/2018] Version 0.2.0 - Support for offline reporting
