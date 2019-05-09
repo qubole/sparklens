@@ -20,6 +20,7 @@ import com.qubole.sparklens.timespan._
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
 import org.json4s.jackson.Serialization
+import org.json4s.MappingException
 
 import scala.collection.mutable
 
@@ -131,7 +132,7 @@ object AppContext {
       HostTimeSpan.getTimeSpan((json \ "hostMap").extract[Map[String, JValue]]),
       ExecutorTimeSpan.getTimeSpan((json \ "executorMap").extract[Map[String, JValue]]),
       JobTimeSpan.getTimeSpan((json \ "jobMap").extract[Map[String, JValue]]),
-      getLongToLongMap((json \ "jobSQLExecIdMap").extract[Map[Long, JValue]]),
+      getJobSQLExecIdMap(json, new mutable.HashMap[Long, Long]),
       StageTimeSpan.getTimeSpan((json \ "stageMap").extract[Map[String, JValue]]),
       getJobToStageMap((json \ "stageIDToJobID").extract[Map[Int, JValue]])
     )
@@ -155,6 +156,20 @@ object AppContext {
       map.put(key, json.get(key).get.extract[Long])
     })
     map
+  }
+
+  // jobSQLExecIdMap was added in release <>
+  private def getJobSQLExecIdMap(json: JValue,
+                                 defaultMap: mutable.HashMap[Long, Long]): mutable.HashMap[Long, Long] = {
+    try {
+      implicit val formats = DefaultFormats
+      getLongToLongMap((json \ "jobSQLExecIdMap").extract[Map[Long, JValue]])
+    } catch {
+      case e: MappingException =>
+        defaultMap
+      case e: Exception =>
+        throw(e)
+    }
   }
 }
 
