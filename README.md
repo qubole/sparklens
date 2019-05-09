@@ -10,7 +10,7 @@ from scaling out and provides contextual information about what could be going w
 it helps you approach spark application tuning as a well defined method/process instead of something you learn by 
 trial and error, saving both developer and compute time. 
 
-### Sparklens Reporting as a Service ####
+## Sparklens Reporting as a Service
 
 http://sparklens.qubole.com is a reporting service built on top of Sparklens. This service was built to lower the pain of sharing and discussing Sparklens 
 output. Users can upload the Sparklens JSON file to this service and retrieve a global sharable 
@@ -18,7 +18,7 @@ link. The link delivers the Sparklens report in an easy-to-consume HTML format w
 charts and animations. It is also useful to have a link for easy reference for yourself, in case 
 some code changes result in lower utilization or make the application slower.
 
-### What does it reports? ###
+## What does it reports?
 
 * Estimated completion time and estimated cluster utilisation with different number of executors
  
@@ -143,12 +143,12 @@ Once you have the Sparklens jar available, add the following options to your spa
 You could also add this to your cluster's **spark-defaults.conf** so that it is automatically available for all applications.
 
 
-### Working with Notebooks ###
+## Working with Notebooks
 It is possible to use Sparklens in your development cycle using Notebooks. Sparklens keeps lots of information in-memory. 
 To make it work with Notebooks, it tries to minimize the amount of memory by keeping limited history of jobs executed 
 in spark. 
 
-### How to use Sparklens with Python Notebooks (Zeppelin)? ###
+## How to use Sparklens with Python Notebooks (Zeppelin)?
 
 1) Add this as first paragraph
 
@@ -192,7 +192,7 @@ print(QNL.getStats(startTime, endTime))
 If gives up historical information, throwing away data about old stages to keep the memory usage 
 by the tool modest.
 
-### How to use Sparklens with Scala Notebooks (Zeppelin)? ###
+## How to use Sparklens with Scala Notebooks (Zeppelin)?
 
 
 1) Add this as first paragraph
@@ -219,18 +219,25 @@ that your variables come back in scope and are accessible to next paragraph. Als
 in Notebooks is little different from what you would see in command line. This is just to make the information concise. 
 We will be making this part configurable. 
 
-### More informtaion? ###
+## More informtaion?
 * Introduction to Sparklens https://www.qubole.com/blog/introducing-quboles-spark-tuning-tool/
 * Video from meetup. Concepts behind Sparklens https://www.youtube.com/watch?v=0a2U4_6zsCc
 * Slides from meetup. https://lnkd.in/fCsrKXj
 * Video from Fifth Elephant Conference  https://www.youtube.com/watch?v=SOFztF-3GGk
 * Video from Spark AI Summit London 2018  https://www.youtube.com/watch?v=KS5vRZPLo6c
 
+## Release Notes
 
-### Contributing ###
+- [03/20/2018] Version 0.1.1 - Sparklens Core
+- [04/06/2018] Version 0.1.2 - Package name fixes
+- [08/07/2018] Version 0.2.0 - Support for offline reporting
+- [01/10/2019] Version 0.2.1 - Stability fixes
+- [05/10/2019] Version 0.2.2 - Support for handling parallel Jobs
+
+## Contributing
 We haven't given much thought. Just raise a PR and if you don't hear from us, shoot an email to 
 help@qubole.com to get our attention. 
 
-### Reporting bugs or feature requests ###
+## Reporting bugs or feature requests
 Please use the github issues for the Sparklens project to report issues or raise feature requests. If you can code,
 better raise a PR.

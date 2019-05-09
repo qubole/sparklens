@@ -17,9 +17,11 @@
 
 package com.qubole.sparklens.scheduler
 
-import com.qubole.sparklens.timespan.{JobTimeSpan, StageTimeSpan}
+import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
+import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import org.scalatest.FunSuite
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 class PQParallelStageSchedulerSuite extends FunSuite {
@@ -226,4 +228,47 @@ class PQParallelStageSchedulerSuite extends FunSuite {
         assert(time === 2, s"Test failed")
     }
 
+    test("ParallelTaskSchedulerTest: 2 Jobs running in parallel") {
+        val jobSQLExecIDMap = new mutable.HashMap[Long, Long]
+        val r = scala.util.Random
+        val sqlExecutionId = r.nextInt(10000)
+
+        // Let, Job 0, 1 and 2 have same sqlExecutionId
+        jobSQLExecIDMap(0) = sqlExecutionId
+        jobSQLExecIDMap(1) = sqlExecutionId
+        jobSQLExecIDMap(2) = sqlExecutionId
+        jobSQLExecIDMap(3) = r.nextInt(10000)
+
+        // Let, Job 1 and 2 are not running in parallel, even though they have same sqlExecutionId
+        val jobTimeSpan0 = createJobTimeSpan(0, (0, 1, 0L, 1L, Seq.empty[Int]) :: Nil)
+        jobTimeSpan0.setStartTime(0L)
+        jobTimeSpan0.setEndTime(1L)
+        val jobTimeSpan1 = createJobTimeSpan(1, (0, 1, 0L, 1L, Seq.empty[Int]) :: Nil)
+        jobTimeSpan1.setStartTime(0L)
+        jobTimeSpan1.setEndTime(1L)
+        val jobTimeSpan2 = createJobTimeSpan(2, (0, 1, 2L, 3L, Seq.empty[Int]) :: Nil)
+        jobTimeSpan2.setStartTime(2L)
+        jobTimeSpan2.setEndTime(3L)
+        val jobTimeSpan3 = createJobTimeSpan(3, (0, 1, 4L, 5L, Seq.empty[Int]) :: Nil)
+        jobTimeSpan3.setStartTime(4L)
+        jobTimeSpan3.setEndTime(5L)
+
+        val jobMap = new mutable.HashMap[Long, JobTimeSpan]
+        jobMap(0) = jobTimeSpan0
+        jobMap(1) = jobTimeSpan1
+        jobMap(2) = jobTimeSpan2
+        jobMap(3) = jobTimeSpan3
+
+        val ac = new AppContext(new ApplicationInfo(),
+            new AggregateMetrics(),
+            mutable.HashMap[String, HostTimeSpan](),
+            mutable.HashMap[String, ExecutorTimeSpan](),
+            jobMap,
+            jobSQLExecIDMap,
+            mutable.HashMap[Int, StageTimeSpan](),
+            mutable.HashMap[Int, Long]())
+
+        val time = CompletionEstimator.estimateAppWallClockTimeWithJobLists(ac, 1, 1, 3)
+        assert(time === 3, s"Test failed")
+    }
 }
