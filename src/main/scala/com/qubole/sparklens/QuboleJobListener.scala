@@ -17,7 +17,9 @@
 
 package com.qubole.sparklens
 
+import java.lang.management.ManagementFactory
 import java.net.URI
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import com.qubole.sparklens.analyzer._
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
@@ -48,6 +50,17 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   protected val stageIDToJobID   = new mutable.HashMap[Int, Long]
   protected val failedStages     = new ListBuffer[String]
   protected val appMetrics       = new AggregateMetrics()
+
+  private var threadExecutor: ScheduledExecutorService = _
+
+  private val updateDriverMemMetrics = new Runnable {
+    def run() = {
+      val memUsage = java.lang.management.ManagementFactory.getMemoryMXBean.getHeapMemoryUsage
+      appMetrics.updateMetric(AggregateMetrics.driverHeapMax, memUsage.getMax)
+      appMetrics.updateMetric(AggregateMetrics.driverHeapMax, memUsage.getCommitted)
+      appMetrics.updateMetric(AggregateMetrics.driverHeapMax, memUsage.getUsed)
+    }
+  }
 
   private def hostCount():Int = hostMap.size
 
@@ -89,6 +102,25 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     val totalTime = appInfo.endTime - appInfo.startTime
     val jobTime   = jobMap.values.map(x => (x.endTime - x.startTime)).sum
     Some(jobTime/totalTime)
+  }
+
+  private def collectDriverMetrics(): Unit = {
+    appMetrics.updateMetric(AggregateMetrics.driverCPUTime,
+      ManagementFactory.getThreadMXBean.getCurrentThreadCpuTime)
+
+    var gcCount: Long = 0
+    var gcTime: Long = 0
+    val iter = ManagementFactory.getGarbageCollectorMXBeans.iterator()
+    while (iter.hasNext) {
+      val current = iter.next()
+      gcCount += current.getCollectionCount
+      gcTime += current.getCollectionTime
+    }
+    appMetrics.updateMetric(AggregateMetrics.driverGCTime, gcCount)
+    appMetrics.updateMetric(AggregateMetrics.driverGCCount, gcTime)
+
+    // The thread should be killed automatically. Do we need this?
+    threadExecutor.shutdown()
   }
 
   override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
@@ -144,6 +176,10 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     //println(s"Application ${applicationStart.appId} started at ${applicationStart.time}")
     appInfo.applicationID = applicationStart.appId.getOrElse("NA")
     appInfo.startTime     = applicationStart.time
+
+    // Start a thread to collect the driver JVM memory stats every 10 seconds
+    threadExecutor = Executors.newSingleThreadScheduledExecutor
+    threadExecutor.scheduleAtFixedRate(updateDriverMemMetrics, 0, 10, TimeUnit.SECONDS)
   }
 
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
@@ -169,6 +205,8 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
         AppAnalyzer.startAnalyzers(appContext)
       }
     }
+
+    collectDriverMetrics()
   }
   override def onExecutorAdded(executorAdded: SparkListenerExecutorAdded): Unit = {
     val executorTimeSpan = executorMap.get(executorAdded.executorId)

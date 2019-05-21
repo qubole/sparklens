@@ -100,6 +100,12 @@ class AggregateMetrics() {
   formatterMap(AggregateMetrics.diskBytesSpilled)= formatBytes
   formatterMap(AggregateMetrics.peakExecutionMemory)= formatBytes
   formatterMap(AggregateMetrics.taskDuration)= formatMillisTime
+  formatterMap(AggregateMetrics.driverHeapMax)= formatMillisTime
+  formatterMap(AggregateMetrics.driverMaxHeapCommitted)= formatMillisTime
+  formatterMap(AggregateMetrics.driverMaxHeapUsed)= formatMillisTime
+  formatterMap(AggregateMetrics.driverCPUTime)= formatMillisTime
+  formatterMap(AggregateMetrics.driverGCTime)= formatMillisTime
+  formatterMap(AggregateMetrics.driverGCCount)= formatMillisTime
 
   @transient val numberFormatter = java.text.NumberFormat.getIntegerInstance
 
@@ -238,7 +244,13 @@ object AggregateMetrics extends Enumeration {
   memoryBytesSpilled,
   diskBytesSpilled,
   peakExecutionMemory,
-  taskDuration
+  taskDuration,
+  driverHeapMax,
+  driverMaxHeapCommitted,
+  driverMaxHeapUsed,
+  driverCPUTime,
+  driverGCCount,
+  driverGCTime
   = Value
 
   def getAggregateMetrics(json: JValue): AggregateMetrics = {
