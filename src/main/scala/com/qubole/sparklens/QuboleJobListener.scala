@@ -22,7 +22,7 @@ import java.net.URI
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import com.qubole.sparklens.analyzer._
-import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo, DriverMetrics, MetricsHelper}
+import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo, DriverMetrics}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -118,11 +118,8 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
       gcCount += current.getCollectionCount
       gcTime += current.getCollectionTime
     }
-    println(s"gcCount: ${gcCount}")
-    println(s"gcTime: ${gcTime}")
     driverMetrics.updateMetric(DriverMetrics.driverGCTime, gcCount)
     driverMetrics.updateMetric(DriverMetrics.driverGCCount, gcTime)
-    threadExecutor.shutdown()
   }
 
   override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
@@ -188,6 +185,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     //println(s"Application ${appInfo.applicationID} ended at ${applicationEnd.time}")
     appInfo.endTime = applicationEnd.time
     collectDriverMetrics()
+    threadExecutor.shutdown()
 
     val appContext = new AppContext(appInfo,
       appMetrics,
