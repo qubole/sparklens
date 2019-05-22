@@ -17,7 +17,7 @@
 
 package com.qubole.sparklens.scheduler
 
-import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
+import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo, DriverMetrics}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import org.scalatest.FunSuite
 
@@ -261,6 +261,7 @@ class PQParallelStageSchedulerSuite extends FunSuite {
 
         val ac = new AppContext(new ApplicationInfo(),
             new AggregateMetrics(),
+            new DriverMetrics(),
             mutable.HashMap[String, HostTimeSpan](),
             mutable.HashMap[String, ExecutorTimeSpan](),
             jobMap,

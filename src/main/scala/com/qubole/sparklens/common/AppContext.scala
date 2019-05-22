@@ -26,6 +26,7 @@ import scala.collection.mutable
 
 case class AppContext(appInfo:        ApplicationInfo,
                       appMetrics:     AggregateMetrics,
+                      driverMetrics:  DriverMetrics,
                       hostMap:        mutable.HashMap[String, HostTimeSpan],
                       executorMap:    mutable.HashMap[String, ExecutorTimeSpan],
                       jobMap:         mutable.HashMap[Long, JobTimeSpan],
@@ -36,6 +37,7 @@ case class AppContext(appInfo:        ApplicationInfo,
   def filterByStartAndEndTime(startTime: Long, endTime: Long): AppContext = {
     new AppContext(appInfo,
       appMetrics,
+      driverMetrics,
       hostMap,
       executorMap
         .filter(x => x._2.endTime == 0 ||            //still running
@@ -56,6 +58,7 @@ case class AppContext(appInfo:        ApplicationInfo,
     val map = Map(
       "appInfo" -> appInfo.getMap(),
       "appMetrics" -> appMetrics.getMap(),
+      "driverMetrics" -> driverMetrics.getMap(),
       "hostMap" -> AppContext.getMap(hostMap),
       "executorMap" -> AppContext.getMap(executorMap),
       "jobMap" -> AppContext.getMap(jobMap),
@@ -129,6 +132,7 @@ object AppContext {
     new AppContext(
       ApplicationInfo.getObject((json \ "appInfo").extract[JValue]),
       AggregateMetrics.getAggregateMetrics((json \ "appMetrics").extract[JValue]),
+      DriverMetrics.getDriverMetrics((json \ "driverMetrics").extract[JValue]),
       HostTimeSpan.getTimeSpan((json \ "hostMap").extract[Map[String, JValue]]),
       ExecutorTimeSpan.getTimeSpan((json \ "executorMap").extract[Map[String, JValue]]),
       JobTimeSpan.getTimeSpan((json \ "jobMap").extract[Map[String, JValue]]),
