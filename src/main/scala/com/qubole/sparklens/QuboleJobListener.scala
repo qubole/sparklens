@@ -105,7 +105,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     Some(jobTime/totalTime)
   }
 
-  private def collectDriverMetrics(): Unit = {
+  private def collectDriverGCMetrics(): Unit = {
     driverMetrics.updateMetric(DriverMetrics.driverCPUTime,
       ManagementFactory.getThreadMXBean.getCurrentThreadCpuTime)
 
@@ -117,8 +117,8 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
       gcCount += current.getCollectionCount
       gcTime += current.getCollectionTime
     }
-    driverMetrics.updateMetric(DriverMetrics.driverGCTime, gcCount)
-    driverMetrics.updateMetric(DriverMetrics.driverGCCount, gcTime)
+    driverMetrics.updateMetric(DriverMetrics.driverGCTime, gcTime)
+    driverMetrics.updateMetric(DriverMetrics.driverGCCount, gcCount)
   }
 
   override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
@@ -183,7 +183,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
     //println(s"Application ${appInfo.applicationID} ended at ${applicationEnd.time}")
     appInfo.endTime = applicationEnd.time
-    collectDriverMetrics()
+    collectDriverGCMetrics()
     threadExecutor.shutdown()
 
     val appContext = new AppContext(appInfo,
