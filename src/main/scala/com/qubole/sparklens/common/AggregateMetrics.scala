@@ -115,7 +115,7 @@ class AggregateMetrics() {
     count += 1
   }
 
-  def print(caption: String, sb: mutable.StringBuilder):Unit = {
+  def print(caption: String, sb: mutable.StringBuilder): Unit = {
     sb.append(s" AggregateMetrics (${caption}) total measurements ${count} ")
       .append("\n")
     sb.append(f"                NAME                        SUM                MIN           MAX                MEAN         ")

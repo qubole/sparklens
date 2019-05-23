@@ -61,18 +61,14 @@ class DriverMetrics {
       .append("\n")
   }
 
-  def print(sb: mutable.StringBuilder): Unit = {
-    map.toBuffer.sortWith((a, b) => a._1.toString < b._1.toString).foreach(x => {
-      formatterMap(x._1)(x, sb)
-    })
-  }
-
   def print(caption: String, sb: mutable.StringBuilder):Unit = {
     sb.append(s" DriverMetrics (${caption}) total measurements ${count} ")
       .append("\n")
     sb.append(f"                NAME                        Value         ")
       .append("\n")
-    print(sb)
+    map.toBuffer.sortWith((a, b) => a._1.toString < b._1.toString).foreach(x => {
+      formatterMap(x._1)(x, sb)
+    })
   }
 }
 
