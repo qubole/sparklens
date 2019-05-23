@@ -23,7 +23,6 @@ import scala.collection.mutable
 
 class DriverMetrics {
 
-  var count = 0L
   val map = new mutable.HashMap[DriverMetrics.Metric, AggregateValue]()
   @transient val formatterMap = new mutable.HashMap[DriverMetrics.Metric, ((DriverMetrics
   .Metric, AggregateValue), mutable.StringBuilder) => Unit]()
@@ -33,19 +32,18 @@ class DriverMetrics {
   formatterMap(DriverMetrics.driverMaxHeapUsed) = formatStaticBytes
   formatterMap(DriverMetrics.driverCPUTime) = formatStaticMillisTime
   formatterMap(DriverMetrics.driverGCTime) = formatStaticMillisTime
-  formatterMap(DriverMetrics.driverGCCount) = formatStaticMillisTime
+  formatterMap(DriverMetrics.driverGCCount) = formatCount
 
   def updateMetric(metric: DriverMetrics.Metric, newValue: Long): Unit = {
     val aggregateValue = map.getOrElse(metric, new AggregateValue)
-    if (count == 0) {
+    if (!map.contains(metric)) {
       map(metric) = aggregateValue
     }
     aggregateValue.value  = math.max(aggregateValue.max, newValue)
-    count += 1
   }
 
   def getMap(): Map[String, Any] = {
-    Map("count" -> count, "map" -> map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap)
+    Map("map" -> map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap)
   }
 
   def formatStaticMillisTime(x: (DriverMetrics.Metric, AggregateValue), sb: mutable.StringBuilder): Unit = {
@@ -61,11 +59,17 @@ class DriverMetrics {
       .append("\n")
   }
 
+  def formatCount(x: (DriverMetrics.Metric, AggregateValue), sb: mutable.StringBuilder): Unit = {
+    sb.append(f" ${x._1}%-30s${x._2.value}%20s")
+      .append("\n")
+  }
+
   def print(caption: String, sb: mutable.StringBuilder):Unit = {
-    sb.append(s" DriverMetrics (${caption}) total measurements ${count} ")
+    sb.append(s" DriverMetrics (${caption}) ")
       .append("\n")
     sb.append(f"                NAME                        Value         ")
       .append("\n")
+
     map.toBuffer.sortWith((a, b) => a._1.toString < b._1.toString).foreach(x => {
       formatterMap(x._1)(x, sb)
     })
@@ -90,7 +94,6 @@ object DriverMetrics extends Enumeration {
       implicit val formats = DefaultFormats
 
       val metrics = new DriverMetrics()
-      metrics.count = (json \ "count").extract[Int]
       val map = (json \ "map").extract[Map[String, JValue]]
 
       map.keys.foreach(key => metrics.map.put(withName(key),

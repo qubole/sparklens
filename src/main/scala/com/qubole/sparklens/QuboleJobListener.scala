@@ -106,7 +106,6 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   }
 
   private def collectDriverMetrics(): Unit = {
-    println("Collecting the driver metrics")
     driverMetrics.updateMetric(DriverMetrics.driverCPUTime,
       ManagementFactory.getThreadMXBean.getCurrentThreadCpuTime)
 
@@ -178,7 +177,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
 
     // Start a thread to collect the driver JVM memory stats every 10 seconds
     threadExecutor = Executors.newSingleThreadScheduledExecutor
-    threadExecutor.scheduleAtFixedRate(updateDriverMemMetrics, 0, 10, TimeUnit.MILLISECONDS)
+    threadExecutor.scheduleAtFixedRate(updateDriverMemMetrics, 0, 500, TimeUnit.MILLISECONDS)
   }
 
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
