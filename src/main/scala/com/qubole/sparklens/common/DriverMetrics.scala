@@ -17,6 +17,9 @@
 
 package com.qubole.sparklens.common
 
+import java.lang.management.ManagementFactory
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
+
 import com.qubole.sparklens.common.MetricsHelper._
 
 import scala.collection.mutable
@@ -33,6 +36,45 @@ class DriverMetrics {
   formatterMap(DriverMetrics.driverCPUTime) = formatStaticMillisTime
   formatterMap(DriverMetrics.driverGCTime) = formatStaticMillisTime
   formatterMap(DriverMetrics.driverGCCount) = formatCount
+
+
+  private val threadExecutor = Executors.newSingleThreadScheduledExecutor
+  threadExecutor
+
+  val updateDriverMemMetrics = new Runnable {
+    def run() = {
+      val memUsage = java.lang.management.ManagementFactory.getMemoryMXBean.getHeapMemoryUsage
+      updateMetric(DriverMetrics.driverHeapMax, memUsage.getMax)
+      updateMetric(DriverMetrics.driverMaxHeapCommitted, memUsage.getCommitted)
+      updateMetric(DriverMetrics.driverMaxHeapUsed, memUsage.getUsed)
+    }
+  }
+
+  def collectGCMetrics(): Unit = {
+    updateMetric(DriverMetrics.driverCPUTime,
+      ManagementFactory.getThreadMXBean.getCurrentThreadCpuTime)
+
+    var gcCount: Long = 0
+    var gcTime: Long = 0
+    val iter = ManagementFactory.getGarbageCollectorMXBeans.iterator()
+    while (iter.hasNext) {
+      val current = iter.next()
+      gcCount += current.getCollectionCount
+      gcTime += current.getCollectionTime
+    }
+    updateMetric(DriverMetrics.driverGCTime, gcTime)
+    updateMetric(DriverMetrics.driverGCCount, gcCount)
+  }
+
+  // Start a thread to collect the driver JVM memory stats every 10 seconds
+  def scheduleMetricsCollection(): Unit = {
+
+    threadExecutor.scheduleAtFixedRate(updateDriverMemMetrics, 0, 10, TimeUnit.SECONDS)
+  }
+
+  def terminateMetricsCollection(): Unit = {
+    threadExecutor.shutdown()
+  }
 
   def updateMetric(metric: DriverMetrics.Metric, newValue: Long): Unit = {
     val aggregateValue = map.getOrElse(metric, new AggregateValue)
