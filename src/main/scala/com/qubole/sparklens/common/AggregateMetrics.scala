@@ -21,61 +21,13 @@ import java.util.Locale
 
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
+
+import com.qubole.sparklens.common.MetricsHelper._
+
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
 
 import scala.collection.mutable
-
-/*
-Keeps track of min max sum mean and variance for any metric at any level
-Reference to incremental updates of variance:
-https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_Online_algorithm
- */
-
-class AggregateValue {
-  var value:    Long   = 0L
-  var min:      Long   = Long.MaxValue
-  var max:      Long   = Long.MinValue
-  var mean:     Double = 0.0
-  var variance: Double = 0.0
-  var m2:       Double = 0.0
-
-  override def toString(): String = {
-    s"""{
-       | "value": ${value},
-       | "min": ${min},
-       | "max": ${max},
-       | "mean": ${mean},
-       | "m2": ${m2}
-       | "variance": ${variance}
-       }""".stripMargin
-  }
-
-  def getMap(): Map[String, Any] = {
-    Map("value" -> value,
-    "min" -> min,
-    "max" -> max,
-    "mean" -> mean,
-    "m2" -> m2,
-    "variance" -> variance)
-  }
-}
-
-object AggregateValue {
-  def getValue(json: JValue): AggregateValue = {
-    implicit val formats = DefaultFormats
-
-    val value = new AggregateValue
-    value.value = (json  \ "value").extract[Long]
-    value.min = (json \ "min").extract[Long]
-    value.max = (json \ "max").extract[Long]
-    value.mean = (json \ "mean").extract[Double]
-    value.variance = (json \ "variance").extract[Double]
-    //making it optional for backward compatibility with sparklens.json files
-    value.m2 = (json \ "m2").extractOrElse[Double](0.0)
-    value
-  }
-}
 
 class AggregateMetrics() {
   var count = 0L
@@ -103,45 +55,6 @@ class AggregateMetrics() {
 
   @transient val numberFormatter = java.text.NumberFormat.getIntegerInstance
 
-  def bytesToString(size: Long): String = {
-    val TB = 1L << 40
-    val GB = 1L << 30
-    val MB = 1L << 20
-    val KB = 1L << 10
-
-    val (value, unit) = {
-      if (Math.abs(size) >= 1*TB) {
-        (size.asInstanceOf[Double] / TB, "TB")
-      } else if (Math.abs(size) >= 1*GB) {
-        (size.asInstanceOf[Double] / GB, "GB")
-      } else if (Math.abs(size) >= 1*MB) {
-        (size.asInstanceOf[Double] / MB, "MB")
-      } else {
-        (size.asInstanceOf[Double] / KB, "KB")
-      }
-    }
-    "%.1f %s".formatLocal(Locale.US, value, unit)
-  }
-
-  def toMillis(size:Long): String = {
-    val MS  = 1000000L
-    val SEC = 1000 * MS
-    val MT  = 60 * SEC
-    val HR  = 60 * MT
-
-    val (value, unit) = {
-      if (size >= 1*HR) {
-        (size.asInstanceOf[Double] / HR, "hh")
-      } else if (size >= 1*MT) {
-        (size.asInstanceOf[Double] / MT, "mm")
-      } else if (size >= 1*SEC) {
-        (size.asInstanceOf[Double] / SEC, "ss")
-      } else {
-        (size.asInstanceOf[Double] / MS, "ms")
-      }
-    }
-    "%.1f %s".formatLocal(Locale.US, value, unit)
-  }
 
   def formatNanoTime(x: (AggregateMetrics.Metric, AggregateValue), sb: mutable.StringBuilder): Unit = {
     sb.append(f" ${x._1}%-30s${toMillis(x._2.value)}%20s${toMillis(x._2.min)}%15s${toMillis(x._2.max)}%15s${toMillis(x._2.mean.toLong)}%20s")
@@ -202,8 +115,8 @@ class AggregateMetrics() {
     count += 1
   }
 
-  def print(caption: String, sb: mutable.StringBuilder):Unit = {
- sb.append(s" AggregateMetrics (${caption}) total measurements ${count} ")
+  def print(caption: String, sb: mutable.StringBuilder): Unit = {
+    sb.append(s" AggregateMetrics (${caption}) total measurements ${count} ")
       .append("\n")
     sb.append(f"                NAME                        SUM                MIN           MAX                MEAN         ")
       .append("\n")

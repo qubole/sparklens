@@ -18,7 +18,7 @@
 
 package com.qubole.sparklens.analyzer
 
-import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
+import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo, DriverMetrics}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import com.qubole.sparklens.helper.JobOverlapHelper
 
@@ -61,6 +61,7 @@ class JobOverlapAnalyzerSuite extends FunSuite {
 
     new AppContext(new ApplicationInfo(),
       new AggregateMetrics(),
+      new DriverMetrics(),
       mutable.HashMap[String, HostTimeSpan](),
       mutable.HashMap[String, ExecutorTimeSpan](),
       jobMap,

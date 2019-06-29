@@ -120,6 +120,7 @@ class QuboleNotebookListener(sparkConf: SparkConf) extends QuboleJobListener(spa
 
     val appContext = new AppContext(appInfo,
       appMetrics,
+      driverMetrics,
       hostMap,
       executorMap,
       jobMap,

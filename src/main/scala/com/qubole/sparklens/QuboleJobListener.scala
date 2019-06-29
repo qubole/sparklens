@@ -20,7 +20,7 @@ package com.qubole.sparklens
 import java.net.URI
 
 import com.qubole.sparklens.analyzer._
-import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
+import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo, DriverMetrics}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -48,6 +48,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   protected val stageIDToJobID   = new mutable.HashMap[Int, Long]
   protected val failedStages     = new ListBuffer[String]
   protected val appMetrics       = new AggregateMetrics()
+  protected val driverMetrics    = new DriverMetrics()
 
   private def hostCount():Int = hostMap.size
 
@@ -144,14 +145,18 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     //println(s"Application ${applicationStart.appId} started at ${applicationStart.time}")
     appInfo.applicationID = applicationStart.appId.getOrElse("NA")
     appInfo.startTime     = applicationStart.time
+    driverMetrics.scheduleMetricsCollection()
   }
 
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
     //println(s"Application ${appInfo.applicationID} ended at ${applicationEnd.time}")
     appInfo.endTime = applicationEnd.time
+    driverMetrics.collectGCMetrics()
+    driverMetrics.terminateMetricsCollection()
 
     val appContext = new AppContext(appInfo,
       appMetrics,
+      driverMetrics,
       hostMap,
       executorMap,
       jobMap,
