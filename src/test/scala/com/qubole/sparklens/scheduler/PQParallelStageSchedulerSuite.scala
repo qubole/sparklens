@@ -18,6 +18,7 @@
 package com.qubole.sparklens.scheduler
 
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
+import com.qubole.sparklens.pluggable.ComplimentaryMetrics
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import org.scalatest.FunSuite
 
@@ -266,7 +267,8 @@ class PQParallelStageSchedulerSuite extends FunSuite {
             jobMap,
             jobSQLExecIDMap,
             mutable.HashMap[Int, StageTimeSpan](),
-            mutable.HashMap[Int, Long]())
+            mutable.HashMap[Int, Long](),
+            mutable.HashMap[String, ComplimentaryMetrics]())
 
         val time = CompletionEstimator.estimateAppWallClockTimeWithJobLists(ac, 1, 1, 3)
         assert(time === 3, s"Test failed")

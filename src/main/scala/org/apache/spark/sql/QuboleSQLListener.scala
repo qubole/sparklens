@@ -1,9 +1,10 @@
 package org.apache.spark.sql
 
 import com.qubole.sparklens.QuboleJobListener
+import com.qubole.sparklens.pluggable.SQLMetrics
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
-import org.apache.spark.scheduler.{SparkListenerStageCompleted, SparkListenerStageSubmitted, SparkListenerTaskEnd}
+import org.apache.spark.scheduler.{SparkListenerApplicationStart, SparkListenerStageCompleted, SparkListenerStageSubmitted, SparkListenerTaskEnd}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.Expression
 import org.apache.spark.sql.execution.joins.{ShuffledHashJoinExec, SortMergeJoinExec}
@@ -222,4 +223,8 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
   }
 
 
+  override def onApplicationStart(applicationStart: SparkListenerApplicationStart): Unit = {
+    pluggableMetricsMap("SQLInfo") = new SQLMetrics()
+    super.onApplicationStart(applicationStart)
+  }
 }
