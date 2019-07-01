@@ -50,11 +50,9 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
   }
 
   /**
-    * Extracts all the join nodes (join keys) and the output RDD of those nodes
-    * @param plan
-    * @return
+    * Extract output RDD and the join keys for the ShuffledHash and SortMerge joins in the sparkPlan
     */
-  def extractJoinRDDInfo(plan: SparkPlan):
+  def extractJoinInfo(plan: SparkPlan):
   List[((Seq[Expression], Seq[Expression]), RDD[InternalRow])] = plan match {
     case x: SparkPlan if (getRDD(x) != null) =>
       // Case when the executed node is WholeStageCodegenExec or WholeStageCodegenExec, start
@@ -65,14 +63,14 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
         case _ =>
           plan
       }
-      val keys = getJoinKeys(subPlan)
-      if (!keys._1.isEmpty) {
-        (keys, getRDD(x)) :: x.children.map(extractJoinRDDInfo).flatten.toList
+      val joinKeys = getJoinKeys(subPlan)
+      if (!joinKeys._1.isEmpty) {
+        (joinKeys, getRDD(x)) :: x.children.map(extractJoinInfo).flatten.toList
       } else {
-        x.children.map(extractJoinRDDInfo).flatten.toList
+        x.children.map(extractJoinInfo).flatten.toList
       }
     case _ =>
-      plan.children.map(extractJoinRDDInfo).flatten.toList
+      plan.children.map(extractJoinInfo).flatten.toList
   }
 
   /**
@@ -80,7 +78,7 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
     * @param rddID
     * @return
     */
-  def getStageId(rddID: Int): Option[Int] = {
+  def getStageID(rddID: Int): Option[Int] = {
     stageToRDDInfo.collectFirst {
       case (stageID: Int, rddInfo: Seq[RDDInfo])
         if (rddInfo.map(_.id).contains(rddID)) =>
@@ -118,7 +116,7 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
     plan match {
       case node: SparkPlan =>
         val stageID = if (getRDD(node) != null) {
-          getStageId(getRDD(node).id).getOrElse(-1)
+          getStageID(getRDD(node).id).getOrElse(-1)
         } else {
           prevStageId
         }
@@ -139,14 +137,13 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
 
   override def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
     nodesDepthStrings = qe.executedPlan.toString.split("\n").toList
-    val nodeToRDDInfo = extractJoinRDDInfo(qe.executedPlan)
-    val skewedStagesRDD = getSkewedStagesRDD()
-    val culpritJoin = nodeToRDDInfo.find {
+    val joinInfo = extractJoinInfo(qe.executedPlan)
+    val skewedStagesRDDInfo = getSkewedStagesRDDInfo()
+    val skewJoin = joinInfo.filter {
       case ((_, _), rdd: RDD[InternalRow]) =>
-        skewedStagesRDD.exists(x => x.id.equals(rdd.id))
+        skewedStagesRDDInfo.exists(x => x.id.equals(rdd.id))
     }
     mapNodesToStages(qe.executedPlan, -1)
-
     clearInformation()
   }
 
@@ -168,8 +165,8 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
   override def onStageCompleted(stageCompleted: SparkListenerStageCompleted): Unit = {
     stageToRDDInfo(stageCompleted.stageInfo.stageId) = stageCompleted.stageInfo.rddInfos
     stageToDuration(stageCompleted.stageInfo.stageId) =
-      stageCompleted.stageInfo.completionTime.getOrElse(0).asInstanceOf[Long] -
-        stageCompleted.stageInfo.submissionTime.getOrElse(0).asInstanceOf[Long]
+      stageCompleted.stageInfo.completionTime.getOrElse(0) -
+        stageCompleted.stageInfo.submissionTime.getOrElse(0)
   }
 
   def isGreaterPercentage(individual: Long, aggregate: Long, threshold: Double): Boolean = {
@@ -182,12 +179,12 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
     */
   def containsSkewedTask(stageID: Int): Boolean = {
     val totalTaskDuration = stageToTaskDurations(stageID).sum
+    // Should we have a single task condition?
     stageToTaskDurations(stageID).size > 1 &&
-      stageToTaskDurations(stageID).collect {
-        case taskDuration: Long
-          if isGreaterPercentage(taskDuration, totalTaskDuration,
-            sparkConf.getDouble("spark.skew.taskTimeThreshold", 0.001)) =>
-          taskDuration
+      stageToTaskDurations(stageID).filter {
+        case taskDuration: Long =>
+          isGreaterPercentage(taskDuration, totalTaskDuration,
+            sparkConf.getDouble("spark.skew.taskTimeThreshold", 0.001))
       }.nonEmpty
   }
 
@@ -195,14 +192,14 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
     * Returns RDDs involved in the skewed stage. Currently we are assuming that only one of the
     * stage might have the skewed task. ToDo: Fix this for multiple skewed stages application
     */
-  def getSkewedStagesRDD(): List[RDDInfo] = {
+  def getSkewedStagesRDDInfo(): List[RDDInfo] = {
 
     def getStageIds(): List[Int] = {
       try {
         val stageIds = sparkConf.get("spark.skew.stage.id").split(",")
         stageIds.map(x => x.toInt).toList
       } catch {
-        case e: Exception =>
+        case _ =>
           List.empty
       }
     }
@@ -219,7 +216,7 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
           stageID
       }.toList
     }
-    stageIDs.map(x => stageToRDDInfo(x.asInstanceOf[Int])).flatten
+    stageIDs.map(stageToRDDInfo).flatten
   }
 
 

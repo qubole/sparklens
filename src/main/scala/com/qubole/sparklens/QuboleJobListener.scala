@@ -40,16 +40,16 @@ import scala.collection.mutable.ListBuffer
 
 class QuboleJobListener(sparkConf: SparkConf) extends SparkListener {
 
-  protected val appInfo          = new ApplicationInfo()
-  protected val executorMap      = new mutable.HashMap[String, ExecutorTimeSpan]()
-  protected val hostMap          = new mutable.HashMap[String, HostTimeSpan]()
-  protected val jobMap           = new mutable.HashMap[Long, JobTimeSpan]
-  protected val jobSQLExecIDMap  = new mutable.HashMap[Long, Long]
-  protected val stageMap         = new mutable.HashMap[Int, StageTimeSpan]
-  protected val stageIDToJobID   = new mutable.HashMap[Int, Long]
-  protected val failedStages     = new ListBuffer[String]
-  protected val appMetrics       = new AggregateMetrics()
-  protected val pluggableMetricsMap  = new mutable.HashMap[String, ComplimentaryMetrics]()
+  protected val appInfo               = new ApplicationInfo()
+  protected val executorMap           = new mutable.HashMap[String, ExecutorTimeSpan]()
+  protected val hostMap               = new mutable.HashMap[String, HostTimeSpan]()
+  protected val jobMap                = new mutable.HashMap[Long, JobTimeSpan]
+  protected val jobSQLExecIDMap       = new mutable.HashMap[Long, Long]
+  protected val stageMap              = new mutable.HashMap[Int, StageTimeSpan]
+  protected val stageIDToJobID        = new mutable.HashMap[Int, Long]
+  protected val failedStages          = new ListBuffer[String]
+  protected val appMetrics            = new AggregateMetrics()
+  protected val pluggableMetricsMap   = new mutable.HashMap[String, ComplimentaryMetrics]()
 
   private def hostCount():Int = hostMap.size
 
