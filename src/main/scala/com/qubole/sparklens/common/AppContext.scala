@@ -25,15 +25,15 @@ import org.json4s.MappingException
 
 import scala.collection.mutable
 
-case class AppContext(appInfo:            ApplicationInfo,
-                      appMetrics:         AggregateMetrics,
-                      hostMap:            mutable.HashMap[String, HostTimeSpan],
-                      executorMap:        mutable.HashMap[String, ExecutorTimeSpan],
-                      jobMap:             mutable.HashMap[Long, JobTimeSpan],
-                      jobSQLExecIdMap:    mutable.HashMap[Long, Long],
-                      stageMap:           mutable.HashMap[Int, StageTimeSpan],
-                      stageIDToJobID:     mutable.HashMap[Int, Long],
-                      pluggableMetricsMap:mutable.HashMap[String, ComplimentaryMetrics]) {
+case class AppContext(appInfo:              ApplicationInfo,
+                      appMetrics:           AggregateMetrics,
+                      hostMap:              mutable.HashMap[String, HostTimeSpan],
+                      executorMap:          mutable.HashMap[String, ExecutorTimeSpan],
+                      jobMap:               mutable.HashMap[Long, JobTimeSpan],
+                      jobSQLExecIdMap:      mutable.HashMap[Long, Long],
+                      stageMap:             mutable.HashMap[Int, StageTimeSpan],
+                      stageIDToJobID:       mutable.HashMap[Int, Long],
+                      pluggableMetricsMap:  mutable.HashMap[String, ComplimentaryMetrics]) {
 
   def filterByStartAndEndTime(startTime: Long, endTime: Long): AppContext = {
     new AppContext(appInfo,

@@ -1,7 +1,8 @@
 package com.qubole.sparklens.pluggable
 
-import org.json4s.{DefaultFormats}
+import org.json4s.{DefaultFormats, MappingException}
 import org.json4s.JsonAST.JValue
+
 import scala.collection.mutable
 
 trait ComplimentaryMetrics {
@@ -31,12 +32,18 @@ object ComplimentaryMetrics {
     * to construct [[com.qubole.sparklens.common.AppContext]] from the JSON.
     */
   def getMetricsMap(json: Map[String, JValue]): mutable.HashMap[String, ComplimentaryMetrics] = {
-    implicit val formats = DefaultFormats
     val metricsMap = new mutable.HashMap[String, ComplimentaryMetrics]
-    json.keys.map(key => {
-      val value = json.get(key).get
-      metricsMap.put(key, fromString(key).getObject(value))
-    })
+    try {
+      implicit val formats = DefaultFormats
+      val metricsMap = new mutable.HashMap[String, ComplimentaryMetrics]
+      json.keys.map(key => {
+        val value = json.get(key).get
+        metricsMap.put(key, fromString(key).getObject(value))
+      })
+    } catch {
+      case e: Exception if !e.isInstanceOf[MappingException] =>
+        throw(e)
+    }
     metricsMap
   }
 
@@ -45,9 +52,6 @@ object ComplimentaryMetrics {
     * to a formatted map which is then dumped in the JSON file/printed on console.
     */
   def getMap(metricsMap: mutable.HashMap[String, _ <: ComplimentaryMetrics]): Map[String, Any] = {
-    metricsMap.keys.map(
-      key => (key.toString, metricsMap(key).toString)
-    ).toMap
+    metricsMap.keys.map(key => (key.toString, metricsMap(key).toString)).toMap
   }
-  ComplimentaryMetrics
 }
