@@ -139,7 +139,7 @@ object AppContext {
       getJobSQLExecIdMap(json, new mutable.HashMap[Long, Long]),
       StageTimeSpan.getTimeSpan((json \ "stageMap").extract[Map[String, JValue]]),
       getJobToStageMap((json \ "stageIDToJobID").extract[Map[Int, JValue]]),
-      ComplimentaryMetrics.getMetricsMap((json \ "plugableMetricsMap").extract[Map[String, JValue]])
+      ComplimentaryMetrics.getMetricsMap((json \ "pluggableMetricsMap").extract[Map[String, JValue]])
     )
 }
 

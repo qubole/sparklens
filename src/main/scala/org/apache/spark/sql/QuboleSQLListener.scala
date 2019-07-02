@@ -3,9 +3,7 @@ package org.apache.spark.sql
 import com.qubole.sparklens.QuboleJobListener
 import com.qubole.sparklens.pluggable.SQLMetrics
 import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
 import org.apache.spark.scheduler.{SparkListenerApplicationStart, SparkListenerStageCompleted, SparkListenerStageSubmitted, SparkListenerTaskEnd}
-import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.execution._
 import org.apache.spark.sql.util.QueryExecutionListener
 
@@ -42,12 +40,7 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
 
   override def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
     sqlMetrics.nodesDepthStrings = qe.executedPlan.toString.split("\n").toList
-    val joinInfo = sqlMetrics.extractJoinInfo(qe.executedPlan)
-    val skewedStagesRDDInfo = sqlMetrics.getSkewedStagesRDDInfo()
-    val skewJoin = joinInfo.filter {
-      case ((_, _), rdd: RDD[InternalRow]) =>
-        skewedStagesRDDInfo.exists(x => x.id.equals(rdd.id))
-    }
+    sqlMetrics.extractSkewJoinInfo(qe.executedPlan)
     sqlMetrics.mapNodesToStages(qe.executedPlan, -1)
     sqlMetrics.clearInfo()
   }

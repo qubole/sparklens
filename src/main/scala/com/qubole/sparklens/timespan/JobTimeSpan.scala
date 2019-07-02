@@ -82,7 +82,7 @@ class JobTimeSpan(val jobID: Long) extends TimeSpan {
     }
   }
 
-  override def getMap(): Map[String, _ <: Any] = {
+    override def getMap(): Map[String, _ <: Any] = {
     implicit val formats = DefaultFormats
 
     Map(
