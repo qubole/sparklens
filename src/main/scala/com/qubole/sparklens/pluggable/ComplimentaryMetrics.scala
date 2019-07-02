@@ -52,6 +52,6 @@ object ComplimentaryMetrics {
     * to a formatted map which is then dumped in the JSON file/printed on console.
     */
   def getMap(metricsMap: mutable.HashMap[String, _ <: ComplimentaryMetrics]): Map[String, Any] = {
-    metricsMap.keys.map(key => (key.toString, metricsMap(key).toString)).toMap
+    metricsMap.keys.map(key => (key.toString, metricsMap(key).getMap)).toMap
   }
 }
