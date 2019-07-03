@@ -18,8 +18,8 @@ class SQLMetrics(sparkConf: SparkConf) extends ComplimentaryMetrics {
   val stageToDuration = new mutable.HashMap[Int, Long]()
   val stageToTaskDurations = new mutable.HashMap[Int, ListBuffer[Long]]()
   var stageToNodes = new mutable.HashMap[Int, String]()
-  var nodesDepthStrings: List[String] = _
-  var skewJoinInfo: List[(String, Int)] = _
+  var nodesDepthStrings: List[String] = List.empty
+  var skewJoinInfo: List[String] = List.empty
 
 
   def getRddId(plan: SparkPlan): Option[Int] = {
@@ -28,28 +28,28 @@ class SQLMetrics(sparkConf: SparkConf) extends ComplimentaryMetrics {
       rddInfo.get(plan).asInstanceOf[Option[Int]]
     } catch {
       case e: NoSuchFieldException =>
-        // ToDO: Make available an open source version of the spark with the RDD IDs collection change
+        // ToDO: Make available an open source distribution of the spark with the RDD IDs collection change
         println("RDD ids are not collected during execution, try using this distribution of spark: ")
         throw e
     }
   }
 
-  def getJoinKeys(plan: SparkPlan): String = plan match {
+  def getJoinInfo(plan: SparkPlan): String = plan match {
     case x: ShuffledHashJoinExec =>
-      (x.leftKeys, x.rightKeys).toString()
+      List(x.toString.split("\n").head, (x.leftKeys, x.rightKeys)).mkString("|")
     case x: SortMergeJoinExec =>
-      (x.leftKeys, x.rightKeys).toString()
-    case x: SparkPlan if (getRddId(x).isDefined) =>
-      x.children.map(getJoinKeys).toList.headOption.getOrElse("")
+      List(x.toString.split("\n").head, (x.leftKeys, x.rightKeys)).mkString("|")
+    case x: SparkPlan if getRddId(x).isDefined =>
+      x.children.map(getJoinInfo).toList.headOption.getOrElse("")
     case _ =>
       ""
   }
 
   /**
-    * Extract output RDD ID and the join keys for the ShuffledHash and SortMerge joins in the sparkPlan
+    * Extract output RDD ID and the join string, keys for the ShuffledHash and SortMerge joins in the sparkPlan
     */
   def extractJoinInfo(plan: SparkPlan): List[(String, Int)] = plan match {
-    case x: SparkPlan if (getRddId(x).isDefined) =>
+    case x: SparkPlan if getRddId(x).isDefined =>
       // Case when the executed node is WholeStageCodegenExec or WholeStageCodegenExec, start
       // searching for the Join node from the child
       val subPlan = plan match {
@@ -58,9 +58,9 @@ class SQLMetrics(sparkConf: SparkConf) extends ComplimentaryMetrics {
         case _ =>
           plan
       }
-      val joinKeys = getJoinKeys(subPlan)
-      if (!joinKeys.isEmpty) {
-        (joinKeys, getRddId(x).get) :: x.children.map(extractJoinInfo).flatten.toList
+      val joinInfo = getJoinInfo(subPlan)
+      if (!joinInfo.isEmpty) {
+        (joinInfo, getRddId(x).get) :: x.children.map(extractJoinInfo).flatten.toList
       } else {
         x.children.map(extractJoinInfo).flatten.toList
       }
@@ -174,9 +174,10 @@ class SQLMetrics(sparkConf: SparkConf) extends ComplimentaryMetrics {
   def extractSkewJoinInfo(plan: SparkPlan): Unit = {
     val joinInfo = extractJoinInfo(plan)
     val skewedStagesRDDInfo = getSkewedStagesRddIds()
-    skewJoinInfo = joinInfo.filter {
-      case (_, rddId: Int) =>
-        skewedStagesRDDInfo.exists(x => x.equals(rddId))
+    skewJoinInfo = joinInfo.collect {
+      case (joinInfo: String, rddId: Int)
+          if skewedStagesRDDInfo.exists(x => x.equals(rddId)) =>
+        joinInfo
     }
   }
 
@@ -199,8 +200,8 @@ object SQLMetrics extends ComplimentaryMetrics {
     // ToDo: Remove the dependence on the SparkConf
     val complimentaryMetrics = new SQLMetrics(new SparkConf())
     complimentaryMetrics.stageToNodes = (json \ "stageToNodes").extract[mutable.HashMap[Int, String]]
-    complimentaryMetrics.skewJoinInfo ++ (json \ "skewJoinInfo").extract[mutable.HashMap[Int, String]]
-    null
+    complimentaryMetrics.skewJoinInfo = (json \ "skewJoinInfo").extract[List[String]]
+    complimentaryMetrics
   }
 }
 
