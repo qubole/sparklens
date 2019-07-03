@@ -20,22 +20,22 @@ class QuboleSQLListener(sparkConf: SparkConf) extends QuboleJobListener(sparkCon
     super.onApplicationStart(applicationStart)
   }
 
-  override def onStageSubmitted(stageSubmitted: SparkListenerStageSubmitted): Unit = {
-    sqlMetrics.stageToRDDInfo(stageSubmitted.stageInfo.stageId) = stageSubmitted.stageInfo.rddInfos
-  }
-
   override def onTaskEnd(taskEnd: SparkListenerTaskEnd): Unit = {
     if (!sqlMetrics.stageToTaskDurations.contains(taskEnd.stageId)) {
       sqlMetrics.stageToTaskDurations(taskEnd.stageId) = ListBuffer.empty
     }
     sqlMetrics.stageToTaskDurations(taskEnd.stageId) += taskEnd.taskInfo.duration
+    super.onTaskEnd(taskEnd)
   }
 
   override def onStageCompleted(stageCompleted: SparkListenerStageCompleted): Unit = {
-    sqlMetrics.stageToRDDInfo(stageCompleted.stageInfo.stageId) = stageCompleted.stageInfo.rddInfos
+    sqlMetrics.stageToRDDIds(stageCompleted.stageInfo.stageId) =
+      stageCompleted.stageInfo.rddInfos.map(_.id).toList
     sqlMetrics.stageToDuration(stageCompleted.stageInfo.stageId) =
       stageCompleted.stageInfo.completionTime.getOrElse(0).asInstanceOf[Long] -
         stageCompleted.stageInfo.submissionTime.getOrElse(0).asInstanceOf[Long]
+
+    super.onStageCompleted(stageCompleted)
   }
 
   override def onSuccess(funcName: String, qe: QueryExecution, durationNs: Long): Unit = {
