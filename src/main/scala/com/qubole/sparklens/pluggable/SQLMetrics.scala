@@ -23,11 +23,14 @@ class SQLMetrics(sparkConf: SparkConf) extends ComplimentaryMetrics {
 
 
   def getRddId(plan: SparkPlan): Option[Int] = {
+
     try {
-      val rddInfo = plan.getClass.getDeclaredField("rddID")
-      rddInfo.get(plan).asInstanceOf[Option[Int]]
-    } catch {
-      case e: NoSuchFieldException =>
+      classOf[SparkPlan]
+        .getMethod("rddID")
+        .invoke(plan)
+        .asInstanceOf[Option[Int]]
+     } catch {
+      case e: NoSuchMethodException =>
         // ToDO: Make available an open source distribution of the spark with the RDD IDs collection change
         println("RDD ids are not collected during execution, try using this distribution of spark: ")
         throw e
@@ -132,7 +135,7 @@ class SQLMetrics(sparkConf: SparkConf) extends ComplimentaryMetrics {
   def containsSkewedTask(stageID: Int): Boolean = {
     val totalTaskDuration = stageToTaskDurations(stageID).sum
     // Should we have a single task condition?
-    stageToTaskDurations(stageID).size > 1 &&
+//    stageToTaskDurations(stageID).size > 1 &&
       stageToTaskDurations(stageID).filter {
         case taskDuration: Long =>
           isGreaterPercentage(taskDuration, totalTaskDuration,
