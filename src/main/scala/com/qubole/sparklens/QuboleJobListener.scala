@@ -150,6 +150,12 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     //println(s"Application ${appInfo.applicationID} ended at ${applicationEnd.time}")
     appInfo.endTime = applicationEnd.time
 
+    //Set end times for the jobs for which onJobEnd event was missed
+    jobMap.foreach(x => {
+        if (jobMap(x._1).endTime == 0) {
+          jobMap(x._1).setEndTime(x._2.stageMap.map(y => y._2.endTime).max)
+        }
+      })
     val appContext = new AppContext(appInfo,
       appMetrics,
       hostMap,
