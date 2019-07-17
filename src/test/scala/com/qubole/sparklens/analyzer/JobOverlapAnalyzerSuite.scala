@@ -21,7 +21,7 @@ package com.qubole.sparklens.analyzer
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import com.qubole.sparklens.helper.JobOverlapHelper
-
+import com.qubole.sparklens.pluggable.ComplimentaryMetrics
 import org.scalatest.FunSuite
 
 import scala.collection.mutable
@@ -66,7 +66,8 @@ class JobOverlapAnalyzerSuite extends FunSuite {
       jobMap,
       jobSQLExecIDMap,
       mutable.HashMap[Int, StageTimeSpan](),
-      mutable.HashMap[Int, Long]())
+      mutable.HashMap[Int, Long](),
+      mutable.HashMap[String, ComplimentaryMetrics]())
   }
 
   test("JobOverlapAnalyzerTest: Jobs running in parallel should be considered while computing " +

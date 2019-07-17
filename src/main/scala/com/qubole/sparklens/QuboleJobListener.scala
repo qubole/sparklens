@@ -21,11 +21,13 @@ import java.net.URI
 
 import com.qubole.sparklens.analyzer._
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
+import com.qubole.sparklens.pluggable.ComplimentaryMetrics
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkConf
 import org.apache.spark.scheduler._
+import org.apache.spark.sql.{QuboleSQLListener, SparkSession}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -37,17 +39,20 @@ import scala.collection.mutable.ListBuffer
   *
   */
 
-class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
+class QuboleJobListener(sparkConf: SparkConf) extends SparkListener {
 
-  protected val appInfo          = new ApplicationInfo()
-  protected val executorMap      = new mutable.HashMap[String, ExecutorTimeSpan]()
-  protected val hostMap          = new mutable.HashMap[String, HostTimeSpan]()
-  protected val jobMap           = new mutable.HashMap[Long, JobTimeSpan]
-  protected val jobSQLExecIDMap  = new mutable.HashMap[Long, Long]
-  protected val stageMap         = new mutable.HashMap[Int, StageTimeSpan]
-  protected val stageIDToJobID   = new mutable.HashMap[Int, Long]
-  protected val failedStages     = new ListBuffer[String]
-  protected val appMetrics       = new AggregateMetrics()
+  protected val appInfo               = new ApplicationInfo()
+  protected val executorMap           = new mutable.HashMap[String, ExecutorTimeSpan]()
+  protected val hostMap               = new mutable.HashMap[String, HostTimeSpan]()
+  protected val jobMap                = new mutable.HashMap[Long, JobTimeSpan]
+  protected val jobSQLExecIDMap       = new mutable.HashMap[Long, Long]
+  protected val stageMap              = new mutable.HashMap[Int, StageTimeSpan]
+  protected val stageIDToJobID        = new mutable.HashMap[Int, Long]
+  protected val failedStages          = new ListBuffer[String]
+  protected val appMetrics            = new AggregateMetrics()
+  val pluggableMetricsMap   = new mutable.HashMap[String, ComplimentaryMetrics]()
+
+  private var sqlListener: QuboleSQLListener = _
 
   private def hostCount():Int = hostMap.size
 
@@ -128,6 +133,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     if (taskEnd.taskInfo.failed) {
       //println(s"\nTask Failed \n ${taskEnd.reason}"
     }
+    sqlListener.onTaskEnd(taskEnd)
   }
 
   private[this] def dumpData(appContext: AppContext): Unit = {
@@ -144,6 +150,11 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     //println(s"Application ${applicationStart.appId} started at ${applicationStart.time}")
     appInfo.applicationID = applicationStart.appId.getOrElse("NA")
     appInfo.startTime     = applicationStart.time
+
+    val spark = SparkSession.builder().getOrCreate()
+    sqlListener = new QuboleSQLListener(sparkConf, this)
+    spark.listenerManager.register(sqlListener)
+    sqlListener.onApplicationStart(applicationStart)
   }
 
   override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
@@ -163,7 +174,8 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
       jobMap,
       jobSQLExecIDMap,
       stageMap,
-      stageIDToJobID)
+      stageIDToJobID,
+      pluggableMetricsMap)
 
     asyncReportingEnabled(sparkConf) match {
       case true => {
@@ -251,5 +263,6 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
       jobTimeSpan.addStage(stageTimeSpan)
       stageTimeSpan.finalUpdate()
     }
+    sqlListener.onStageCompleted(stageCompleted)
   }
 }

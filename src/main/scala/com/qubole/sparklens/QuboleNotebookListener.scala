@@ -125,7 +125,8 @@ class QuboleNotebookListener(sparkConf: SparkConf) extends QuboleJobListener(spa
       jobMap,
       jobSQLExecIDMap,
       stageMap,
-      stageIDToJobID)
+      stageIDToJobID,
+      pluggableMetricsMap)
 
     val out = new mutable.StringBuilder()
 
