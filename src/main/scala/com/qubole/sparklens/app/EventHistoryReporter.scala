@@ -9,10 +9,9 @@ import net.jpountz.lz4.LZ4BlockInputStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkConf
-import org.json4s.DefaultFormats
-import org.json4s.jackson.JsonMethods.parse
+import org.json4s.{DefaultFormats, JValue, JsonInput}
 import org.xerial.snappy.SnappyInputStream
-
+import scala.reflect.runtime.universe
 
 class EventHistoryReporter(file: String, extraConf: List[(String, String)] = List.empty) {
 
@@ -68,7 +67,27 @@ class EventHistoryReporter(file: String, extraConf: List[(String, String)] = Lis
 
   private def getFilter(eventString: String): Boolean = {
     implicit val formats = DefaultFormats
-    eventFilter.contains(parse(eventString).extract[Map[String, Any]].get("Event")
+
+    def parseJsonString(str: String): JValue = {
+      val runtimeMirror = universe.runtimeMirror(getClass.getClassLoader)
+      val module = runtimeMirror.staticModule("org.json4s.jackson.JsonMethods")
+      val obj = runtimeMirror.reflectModule(module)
+      try {
+        return obj
+          .instance
+          .asInstanceOf[ { def parse(str: JsonInput, a: Boolean = false): JValue }]
+          .parse(str)
+      } catch {
+        case _: NoSuchMethodException =>
+          return obj
+            .instance
+            .asInstanceOf[ { def parse(str: JsonInput, a: Boolean = false, b: Boolean = false): JValue }]
+            .parse(str)
+        case e: Exception =>
+          throw e
+      }
+    }
+    eventFilter.contains(parseJsonString(eventString).extract[Map[String, Any]].get("Event")
       .get.asInstanceOf[String])
   }
 
