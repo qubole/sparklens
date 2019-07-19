@@ -6,8 +6,8 @@ import java.net.URI
 import com.ning.compress.lzf.LZFInputStream
 import com.qubole.sparklens.QuboleJobListener
 import com.qubole.sparklens.common.Json4sWrapper
+import com.qubole.sparklens.helper.HDFSConfigHelper
 import net.jpountz.lz4.LZ4BlockInputStream
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkConf
 import org.json4s.DefaultFormats
@@ -51,7 +51,7 @@ class EventHistoryReporter(file: String, extraConf: List[(String, String)] = Lis
   // Borrowed from CompressionCodecs in spark
   private def getDecodedInputStream(file: String, conf: SparkConf): InputStream = {
 
-    val fs = FileSystem.get(new URI(file), new Configuration())
+    val fs = FileSystem.get(new URI(file), HDFSConfigHelper.getHadoopConf(Some(conf)))
     val path = new Path(file)
     val bufStream = new BufferedInputStream(fs.open(path))
 
