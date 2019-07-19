@@ -17,12 +17,11 @@
 package com.qubole.sparklens.timespan
 
 
-import com.qubole.sparklens.common.AggregateMetrics
+import com.qubole.sparklens.common.{AggregateMetrics, Json4sWrapper}
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
-import org.json4s.jackson.JsonMethods.parse
 
 import scala.collection.mutable
 
@@ -130,11 +129,11 @@ object StageTimeSpan {
       timeSpan.maxTaskFinishTime = (value \ "maxTaskFinishTime").extract[Long]
 
 
-      timeSpan.parentStageIDs = parse((value \ "parentStageIDs").extract[String]).extract[List[Int]]
-      timeSpan.taskExecutionTimes = parse((value \ "taskExecutionTimes").extract[String])
+      timeSpan.parentStageIDs = Json4sWrapper.parse((value \ "parentStageIDs").extract[String]).extract[List[Int]]
+      timeSpan.taskExecutionTimes = Json4sWrapper.parse((value \ "taskExecutionTimes").extract[String])
         .extract[List[Int]].toArray
 
-      timeSpan.taskPeakMemoryUsage = parse((value \ "taskPeakMemoryUsage").extract[String])
+      timeSpan.taskPeakMemoryUsage = Json4sWrapper.parse((value \ "taskPeakMemoryUsage").extract[String])
         .extract[List[Long]].toArray
 
       timeSpan.addStartEnd(value)

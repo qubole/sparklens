@@ -6,14 +6,13 @@ import java.net.URI
 import com.ning.compress.lzf.LZFInputStream
 import com.qubole.sparklens.QuboleJobListener
 import com.qubole.sparklens.analyzer.AppAnalyzer
-import com.qubole.sparklens.common.AppContext
+import com.qubole.sparklens.common.{AppContext, Json4sWrapper}
 import net.jpountz.lz4.LZ4BlockInputStream
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkConf
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
-import org.json4s.jackson.JsonMethods.parse
 import org.xerial.snappy.SnappyInputStream
 
 
@@ -36,8 +35,7 @@ object ReporterApp extends App {
   def startAnalysersFromString(json: String): Unit = {
 
     implicit val formats = DefaultFormats
-    val map = parse(json).extract[JValue]
-
+    val map = Json4sWrapper.parse(json).extract[JValue]
     val appContext = AppContext.getContext(map)
     startAnalysersFromAppContext(appContext)
   }
@@ -125,7 +123,7 @@ object ReporterApp extends App {
 
   private def getFilter(eventString: String): Boolean = {
     implicit val formats = DefaultFormats
-    eventFilter.contains(parse(eventString).extract[Map[String, Any]].get("Event")
+    eventFilter.contains(Json4sWrapper.parse(eventString).extract[Map[String, Any]].get("Event")
       .get.asInstanceOf[String])
   }
 
