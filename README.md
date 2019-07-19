@@ -102,12 +102,11 @@ with additional configuration parameters:
 ```
 
 This will not run reporting, but instead create a Sparklens JSON file for the application which is 
-stored in the **spark.sparklens.data.dir** directory (by default, **/tmp/sparklens/**). This 
-data file can now be used to run Sparklens independently, using `spark-submit` command as follows:
+stored in the **spark.sparklens.data.dir** directory (by default, **/tmp/sparklens/**). Note that this will be stored on HDFS by default. To save this file to s3, please set **spark.sparklens.data.dir** to s3 path. This data file can now be used to run Sparklens reporting independently, using `spark-submit` command as follows:
 
 `./bin/spark-submit --packages qubole:sparklens:0.3.0-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
 
-`<filename>` should be replaced by the full path of sparklens json file.
+`<filename>` should be replaced by the full path of sparklens json file. If the file is on s3 use the full s3 path. For files on local file system, use file:// prefix with the local file location. HDFS is supported as well. 
 
 You can also upload a Sparklens JSON data file to http://sparklens.qubole.com to see this report as an HTML page. 
 
@@ -124,6 +123,7 @@ It is also possible to convert an event history file to a Sparklens json file us
 
 `./bin/spark-submit --packages qubole:sparklens:0.3.0-s_2.11 --class com.qubole.sparklens.app.EventHistoryToSparklensJson qubole-dummy-arg <srcDir> <targetDir>`
 
+EventHistoryToSparklensJson is designed to work on local file system only. Please make sure that the source and target directories are on local file system.
 
 #### 4. Checkout the code and use the normal sbt commands: #### 
 
