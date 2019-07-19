@@ -31,7 +31,7 @@ case class QueuedTask(duration: Int, finishingTime: Long, stageID: Int) extends 
 class PQParallelStageScheduler(totalCores: Int, taskCountMap: mutable.HashMap[Int, Int]) extends TaskScheduler {
   val NO_STAGE_ID = -1
   if (totalCores <= 0) throw new RuntimeException(s"Absurd number of cores ${totalCores}")
-  val taskQueue = mutable.PriorityQueue.newBuilder[QueuedTask]
+  val taskQueue = mutable.PriorityQueue.newBuilder[QueuedTask].result()
   var wallClock: Long = 0
 
   /**
