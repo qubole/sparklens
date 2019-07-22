@@ -153,7 +153,15 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     //Set end times for the jobs for which onJobEnd event was missed
     jobMap.foreach(x => {
         if (jobMap(x._1).endTime == 0) {
-          jobMap(x._1).setEndTime(x._2.stageMap.map(y => y._2.endTime).max)
+          //Lots of computations go wrong if we don't have
+          //application end time
+          //set it to end time of the stage that finished last
+          if (!x._2.stageMap.isEmpty) {
+            jobMap(x._1).setEndTime(x._2.stageMap.map(y => y._2.endTime).max)
+          }else {
+            //no stages? set it to endTime of the app
+            jobMap(x._1).setEndTime(appInfo.endTime)
+          }
         }
       })
     val appContext = new AppContext(appInfo,
