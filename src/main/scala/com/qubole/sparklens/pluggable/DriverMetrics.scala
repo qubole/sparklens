@@ -15,16 +15,19 @@
 * limitations under the License.
 */
 
-package com.qubole.sparklens.common
+package com.qubole.sparklens.pluggable
 
 import java.lang.management.ManagementFactory
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
+import com.qubole.sparklens.common.AggregateValue
 import com.qubole.sparklens.common.MetricsHelper._
+import org.apache.spark.scheduler.{SparkListenerApplicationEnd, SparkListenerApplicationStart}
+import org.json4s
 
 import scala.collection.mutable
 
-class DriverMetrics {
+class DriverMetrics extends ComplimentaryMetrics {
 
   val map = new mutable.HashMap[DriverMetrics.Metric, AggregateValue]()
   @transient val formatterMap = new mutable.HashMap[DriverMetrics.Metric, ((DriverMetrics
@@ -66,9 +69,17 @@ class DriverMetrics {
     updateMetric(DriverMetrics.driverGCCount, gcCount)
   }
 
+  override def onApplicationStart(applicationStart: SparkListenerApplicationStart): Unit = {
+    scheduleMetricsCollection()
+  }
+
+  override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
+    collectGCMetrics()
+    terminateMetricsCollection()
+  }
+
   // Start a thread to collect the driver JVM memory stats every 10 seconds
   def scheduleMetricsCollection(): Unit = {
-
     threadExecutor.scheduleAtFixedRate(updateDriverMemMetrics, 0, 10, TimeUnit.SECONDS)
   }
 
@@ -84,7 +95,7 @@ class DriverMetrics {
     aggregateValue.value  = math.max(aggregateValue.max, newValue)
   }
 
-  def getMap(): Map[String, Any] = {
+  override def getMap(): Map[String, Any] = {
     Map("map" -> map.keys.map(key => (key.toString, map.get(key).get.getMap())).toMap)
   }
 
@@ -97,7 +108,7 @@ class DriverMetrics {
   }
 
   def formatStaticBytes(x: (DriverMetrics.Metric, AggregateValue), sb: mutable.StringBuilder): Unit = {
-      sb.append(f" ${x._1}%-30s${bytesToString(x._2.value)}%20s")
+    sb.append(f" ${x._1}%-30s${bytesToString(x._2.value)}%20s")
       .append("\n")
   }
 
@@ -106,7 +117,7 @@ class DriverMetrics {
       .append("\n")
   }
 
-  def print(caption: String, sb: mutable.StringBuilder):Unit = {
+  override def print(caption: String, sb: mutable.StringBuilder):Unit = {
     sb.append(s" DriverMetrics (${caption}) ")
       .append("\n")
     sb.append(f"                NAME                        Value         ")
@@ -118,7 +129,7 @@ class DriverMetrics {
   }
 }
 
-object DriverMetrics extends Enumeration {
+object DriverMetrics extends Enumeration with ComplimentaryMetrics {
   import org.json4s._
 
   type Metric = Value
@@ -131,7 +142,7 @@ object DriverMetrics extends Enumeration {
   driverGCTime
   = Value
 
-  def getDriverMetrics(json: JValue): DriverMetrics = {
+  override def getObject(json: json4s.JValue): ComplimentaryMetrics = {
     try {
       implicit val formats = DefaultFormats
 

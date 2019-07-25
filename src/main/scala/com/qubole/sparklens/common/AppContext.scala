@@ -17,6 +17,7 @@
 package com.qubole.sparklens.common
 
 import com.qubole.sparklens.timespan._
+import com.qubole.sparklens.pluggable.ComplimentaryMetrics
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
 import org.json4s.jackson.Serialization
@@ -26,18 +27,17 @@ import scala.collection.mutable
 
 case class AppContext(appInfo:        ApplicationInfo,
                       appMetrics:     AggregateMetrics,
-                      driverMetrics:  DriverMetrics,
                       hostMap:        mutable.HashMap[String, HostTimeSpan],
                       executorMap:    mutable.HashMap[String, ExecutorTimeSpan],
                       jobMap:         mutable.HashMap[Long, JobTimeSpan],
                       jobSQLExecIdMap:mutable.HashMap[Long, Long],
                       stageMap:       mutable.HashMap[Int, StageTimeSpan],
-                      stageIDToJobID: mutable.HashMap[Int, Long]) {
+                      stageIDToJobID: mutable.HashMap[Int, Long],
+                      pluggableMetricsMap:  mutable.HashMap[String, ComplimentaryMetrics]) {
 
   def filterByStartAndEndTime(startTime: Long, endTime: Long): AppContext = {
     new AppContext(appInfo,
       appMetrics,
-      driverMetrics,
       hostMap,
       executorMap
         .filter(x => x._2.endTime == 0 ||            //still running
@@ -50,7 +50,8 @@ case class AppContext(appInfo:        ApplicationInfo,
       stageMap
         .filter(x => x._2.startTime >= startTime &&
                      x._2.endTime <= endTime),
-      stageIDToJobID)
+      stageIDToJobID,
+      pluggableMetricsMap)
   }
 
   override def toString(): String = {
@@ -58,13 +59,13 @@ case class AppContext(appInfo:        ApplicationInfo,
     val map = Map(
       "appInfo" -> appInfo.getMap(),
       "appMetrics" -> appMetrics.getMap(),
-      "driverMetrics" -> driverMetrics.getMap(),
       "hostMap" -> AppContext.getMap(hostMap),
       "executorMap" -> AppContext.getMap(executorMap),
       "jobMap" -> AppContext.getMap(jobMap),
       "jobSQLExecIdMap" -> jobSQLExecIdMap,
       "stageMap" -> AppContext.getMap(stageMap),
-      "stageIDToJobID" -> stageIDToJobID
+      "stageIDToJobID" -> stageIDToJobID,
+      "pluggableMetricsMap" -> ComplimentaryMetrics.getMap(pluggableMetricsMap)
     )
     Serialization.writePretty(map)
   }
@@ -132,13 +133,13 @@ object AppContext {
     new AppContext(
       ApplicationInfo.getObject((json \ "appInfo").extract[JValue]),
       AggregateMetrics.getAggregateMetrics((json \ "appMetrics").extract[JValue]),
-      DriverMetrics.getDriverMetrics((json \ "driverMetrics").extract[JValue]),
       HostTimeSpan.getTimeSpan((json \ "hostMap").extract[Map[String, JValue]]),
       ExecutorTimeSpan.getTimeSpan((json \ "executorMap").extract[Map[String, JValue]]),
       JobTimeSpan.getTimeSpan((json \ "jobMap").extract[Map[String, JValue]]),
       getJobSQLExecIdMap(json, new mutable.HashMap[Long, Long]),
       StageTimeSpan.getTimeSpan((json \ "stageMap").extract[Map[String, JValue]]),
-      getJobToStageMap((json \ "stageIDToJobID").extract[Map[Int, JValue]])
+      getJobToStageMap((json \ "stageIDToJobID").extract[Map[Int, JValue]]),
+      ComplimentaryMetrics.getMetricsMap((json \ "pluggableMetricsMap").extract[Map[String, JValue]])
     )
 }
 

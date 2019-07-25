@@ -34,7 +34,12 @@ class SimpleAppAnalyzer extends  AppAnalyzer {
       "task-level granularity and aggregated across the app (all tasks, stages, and jobs).\n")
     ac.appMetrics.print("Application Metrics", out)
     out.println("\n")
-    ac.driverMetrics.print("Driver Metrics", out)
+
+    ac.pluggableMetricsMap.foreach(x => {
+      x._2.print(x._1, out)
+      out.println("\n")
+    })
+    out.println("\n")
     out.toString()
   }
 }
