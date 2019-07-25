@@ -22,12 +22,15 @@ import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import com.qubole.sparklens.common.AggregateValue
 import com.qubole.sparklens.common.MetricsHelper._
+import javax.management.{Attribute, ObjectName}
 import org.apache.spark.scheduler.{SparkListenerApplicationEnd, SparkListenerApplicationStart}
 import org.json4s
 
 import scala.collection.mutable
 
 class DriverMetrics extends ComplimentaryMetrics {
+
+  private val ProcessCpuTime = "ProcessCpuTime"
 
   val map = new mutable.HashMap[DriverMetrics.Metric, AggregateValue]()
   @transient val formatterMap = new mutable.HashMap[DriverMetrics.Metric, ((DriverMetrics
@@ -54,8 +57,11 @@ class DriverMetrics extends ComplimentaryMetrics {
   }
 
   def collectGCMetrics(): Unit = {
+    val operatingSystemObjectName = ObjectName.getInstance("java.lang:type=OperatingSystem")
     updateMetric(DriverMetrics.driverCPUTime,
-      ManagementFactory.getThreadMXBean.getCurrentThreadCpuTime)
+      ManagementFactory.getPlatformMBeanServer
+        .getAttribute(operatingSystemObjectName, ProcessCpuTime).asInstanceOf[Attribute]
+        .getValue.asInstanceOf[Long])
 
     var gcCount: Long = 0
     var gcTime: Long = 0
