@@ -1,3 +1,5 @@
+[![Gitter](https://badges.gitter.im/qubole-sparklens/community.svg)](https://gitter.im/qubole-sparklens/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 # README #
 
 Sparklens is a profiling tool for Spark with a built-in Spark scheduler simulator. Its primary goal is to make it easy 
