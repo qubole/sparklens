@@ -18,6 +18,8 @@
 package com.qubole.sparklens.analyzer
 
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext}
+import com.qubole.sparklens.helper.JobOverlapHelper
+
 import scala.collection.mutable
 
 /*
@@ -31,17 +33,16 @@ class EfficiencyStatisticsAnalyzer extends  AppAnalyzer {
     // wall clock time, appEnd - appStart
     val appTotalTime = endTime - startTime
     // wall clock time per Job. Aggregated
-    val jobTime   = ac.jobMap.values
-      .map(x => (x.endTime - x.startTime))
-      .sum
-
+    val jobTime = JobOverlapHelper.estimatedTimeSpentInJobs(ac)
     /* sum of cores in all the executors:
      * There are executors coming up and going down.
      * We are taking the max-number of executors running at any point of time, and
      * multiplying it by num-cores per executor (assuming homogenous cluster)
      */
     val maxExecutors = AppContext.getMaxConcurrent(ac.executorMap, ac)
-    val totalCores = ac.executorMap.values.last.cores * maxExecutors
+    val executorCores = AppContext.getExecutorCores(ac)
+    val totalCores = executorCores * maxExecutors
+
     // total compute millis available to the application
     val appComputeMillisAvailable = totalCores * appTotalTime
     val computeMillisFromExecutorLifetime = ac.executorMap.map( x => {
@@ -64,18 +65,16 @@ class EfficiencyStatisticsAnalyzer extends  AppAnalyzer {
     // which is in the critical path. Note that some stages can run in parallel
     // we cannot reduce the job time to less than this number.
     // Aggregating over all jobs, to get the lower bound on this time.
-    val criticalPathTime = ac.jobMap.map( x => x._2.computeCriticalTimeForJob()).sum
+    val criticalPathTime = JobOverlapHelper.criticalPathForAllJobs(ac)
 
     //sum of millis used by all tasks of all jobs
     val inJobComputeMillisUsed  = ac.jobMap.values
-      .filter(x => x.endTime > 0).map(x =>
-      x.jobMetrics.map(AggregateMetrics.executorRuntime).value)
+      .filter(x => x.endTime > 0)
+      .filter(x => x.jobMetrics.map.isDefinedAt(AggregateMetrics.executorRuntime))
+      .map(x => x.jobMetrics.map(AggregateMetrics.executorRuntime).value)
       .sum
 
-    val perfectJobTime  = ac.jobMap.values
-      .filter(x => x.endTime > 0)
-      .map(x => x.jobMetrics.map(AggregateMetrics.executorRuntime).value).sum/totalCores
-
+    val perfectJobTime  = inJobComputeMillisUsed/totalCores
     //Enough variables lets print some
 
     val driverTimeJobBased = appTotalTime - jobTime
