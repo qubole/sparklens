@@ -6,14 +6,13 @@ import java.net.URI
 import com.ning.compress.lzf.LZFInputStream
 import com.qubole.sparklens.QuboleJobListener
 import com.qubole.sparklens.analyzer.AppAnalyzer
-import com.qubole.sparklens.common.AppContext
+import com.qubole.sparklens.common.{AppContext, Json4sWrapper}
+import com.qubole.sparklens.helper.HDFSConfigHelper
 import net.jpountz.lz4.LZ4BlockInputStream
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkConf
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
-import org.json4s.jackson.JsonMethods.parse
 import org.xerial.snappy.SnappyInputStream
 
 
@@ -36,8 +35,7 @@ object ReporterApp extends App {
   def startAnalysersFromString(json: String): Unit = {
 
     implicit val formats = DefaultFormats
-    val map = parse(json).extract[JValue]
-
+    val map = Json4sWrapper.parse(json).extract[JValue]
     val appContext = AppContext.getContext(map)
     startAnalysersFromAppContext(appContext)
   }
@@ -71,7 +69,7 @@ object ReporterApp extends App {
   }
 
   private def reportFromSparklensDump(file: String): Unit = {
-    val fs = FileSystem.get(new URI(file), new Configuration())
+    val fs = FileSystem.get(new URI(file), HDFSConfigHelper.getHadoopConf(None))
 
     val path = new Path(file)
     val byteArray = new Array[Byte](fs.getFileStatus(path).getLen.toInt)
@@ -107,7 +105,7 @@ object ReporterApp extends App {
   // Borrowed from CompressionCodecs in spark
   private def getDecodedInputStream(file: String, conf: SparkConf): InputStream = {
 
-    val fs = FileSystem.get(new URI(file), new Configuration())
+    val fs = FileSystem.get(new URI(file), HDFSConfigHelper.getHadoopConf(Some(conf)))
     val path = new Path(file)
     val bufStream = new BufferedInputStream(fs.open(path))
 
@@ -125,7 +123,7 @@ object ReporterApp extends App {
 
   private def getFilter(eventString: String): Boolean = {
     implicit val formats = DefaultFormats
-    eventFilter.contains(parse(eventString).extract[Map[String, Any]].get("Event")
+    eventFilter.contains(Json4sWrapper.parse(eventString).extract[Map[String, Any]].get("Event")
       .get.asInstanceOf[String])
   }
 

@@ -14,8 +14,8 @@ class EventHistoryFileReportingSuite extends FunSuite {
     // corresponding sparklens dump is in same location and name, but additional suffix
     val sparklensDump = TestUtils.getFileContents(eventHistoryFile + ".sparklens.json")
 
-    assert (outputFromSparklensDump(sparklensDump) ==
-            outputFromEventHistoryReport(eventHistoryFile))
+    validateOutput(outputFromSparklensDump(sparklensDump),
+      outputFromEventHistoryReport(eventHistoryFile))
   }
 
 
@@ -35,4 +35,10 @@ class EventHistoryFileReportingSuite extends FunSuite {
     out.toString
   }
 
+  private def validateOutput(file1:String, file2:String) = {
+    assert(file1.size == file2.size,
+      "output size is different between eventlogs report and sparklens.json report")
+    assert(file1.lines.zip(file2.lines).filterNot(x => x._1 == x._2).size == 0,
+      "Report lines are not matching between eventlogs report and sparklens.json report")
+  }
 }

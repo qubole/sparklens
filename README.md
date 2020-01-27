@@ -1,8 +1,10 @@
+[![Gitter](https://badges.gitter.im/qubole-sparklens/community.svg)](https://gitter.im/qubole-sparklens/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 # README #
 
-Sparklens is a profiling tool for Spark with built-in Spark Scheduler simulator. Its primary goal is to make it easy 
-to understand the scalability limits of spark applications. It helps in understanding how efficiently is a given 
-spark application using the compute resources provided to it. May be your application will run faster with more 
+Sparklens is a profiling tool for Spark with a built-in Spark scheduler simulator. Its primary goal is to make it easy 
+to understand the scalability limits of Spark applications. It helps in understanding how efficiently a given 
+Spark application is using the compute resources provided to it. Maybe your application will run faster with more 
 executors and may be it wont. Sparklens can answer this question by looking at a single run of your application. 
 
 It helps you narrow down to few stages (or driver, or skew or lack of tasks) which are limiting your application 
@@ -10,9 +12,17 @@ from scaling out and provides contextual information about what could be going w
 it helps you approach spark application tuning as a well defined method/process instead of something you learn by 
 trial and error, saving both developer and compute time. 
 
-### What does it reports? ###
+## Sparklens Reporting as a Service
 
-* Estimated completion time and estimated cluster utilisation with different number of executors
+http://sparklens.qubole.com is a reporting service built on top of Sparklens. This service was built to lower the pain of sharing and discussing Sparklens 
+output. Users can upload the Sparklens JSON file to this service and retrieve a global sharable 
+link. The link delivers the Sparklens report in an easy-to-consume HTML format with intuitive 
+charts and animations. It is also useful to have a link for easy reference for yourself, in case 
+some code changes result in lower utilization or make the application slower.
+
+## What does it report?
+
+* Estimated completion time and estimated cluster utilisation with different numbers of executors
  
  ```
  Executor count    31  ( 10%) estimated time 87m 29s and estimated cluster utilization 92.73%
@@ -21,10 +31,10 @@ trial and error, saving both developer and compute time.
  Executor count   248  ( 80%) estimated time 16m 43s and estimated cluster utilization 60.65%
  Executor count   310  (100%) estimated time 14m 49s and estimated cluster utilization 54.73%
 ```
-Given a single run of a spark application, Sparklens can estimate how will your application perform 
+Given a single run of a Spark application, Sparklens can estimate how your application will perform 
 given any arbitrary number of executors. This helps you understand the ROI on adding executors. 
 
-* Job/Stage timeline which shows how the parallel stages were scheduled within a job. This makes it easy to visualise 
+* Job/stage timeline which shows how the parallel stages were scheduled within a job. This makes it easy to visualise 
 the DAG with stage dependencies at the job level. 
 
 ```
@@ -40,8 +50,8 @@ the DAG with stage dependencies at the job level.
 [    679                                                  |||||||||||||||||||||||||||||||]
 ```
 
-*Lots of interesting per stage metrics like Input, Output, Shuffle Input and Shuffle Output per stage. **OneCoreComputeHours** 
-available and used per stage to find out inefficient stages. 
+*Lots of interesting per-stage metrics like Input, Output, Shuffle Input and Shuffle Output per stage. **OneCoreComputeHours** 
+available and used per stage to discover inefficient stages. 
 
 ```
 Total tasks in all stages 189446
@@ -57,8 +67,8 @@ Stage-ID   Wall    Task      Task     IO%    Input     Output    ----Shuffle----
        8    0.00    0.03        38    0.0    0.0 KB    0.0 KB    2.7 GB    2.7 GB    00m 05s   00m 00s    06h 20m    0.6   99.4    0.0 KB 
 ```
 
-Internally, Sparklens has a concept of Analyzer which is a generic component for emitting interesting events. 
-Following Analyzers are currently available:
+Internally, Sparklens has the concept of an analyzer which is a generic component for emitting interesting events. 
+The following analyzers are currently available:
 
 1. AppTimelineAnalyzer
 2. EfficiencyStatisticsAnalyzer
@@ -70,45 +80,52 @@ Following Analyzers are currently available:
 8. StageOverlapAnalyzer
 9. StageSkewAnalyzer
 
-We are hoping that spark experts world over will help us with ideas or contributions to extend this set. And similarly 
-spark users can help us in finding what is missing here by raising challenging tuning questions.   
+We are hoping that Spark experts the world over will help us with ideas or contributions to extend this set. Similarly, 
+Spark users can help us in finding what is missing here by raising challenging tuning questions.   
 
-### How to use Sparklens? ###
+## How to use Sparklens?
 
-#### 1. Using the sparklens package while running your app #### 
+#### 1. Using the Sparklens package while running your app #### 
 
-Use the following arguments in spark-submit or spark-shell:
+Use the following arguments to `spark-submit` or `spark-shell`:
 ```
---packages qubole:sparklens:0.2.0-s_2.11
+--packages qubole:sparklens:0.3.1-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
-#### 2. Run from sparklens offline data ####
+#### 2. Run from Sparklens offline data ####
 
-You can choose not to run sparklens inside the app, but at a later time. Run you app as above 
-with an additional conf:
+You can choose not to run sparklens inside the app, but at a later time. Run your app as above 
+with additional configuration parameters:
 ```
---packages qubole:sparklens:0.2.0-s_2.11
+--packages qubole:sparklens:0.3.1-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 --conf spark.sparklens.reporting.disabled=true
 ```
 
-This will not run reporting, but instead create a sparklens data file for the application which is 
-stored at **spark.sparklens.data.dir** directory (by default it is **/tmp/sparklens/**). This 
-data-file can now be used to run sparklens independently, using spark-submit command as follows:
+This will not run reporting, but instead create a Sparklens JSON file for the application which is 
+stored in the **spark.sparklens.data.dir** directory (by default, **/tmp/sparklens/**). Note that this will be stored on HDFS by default. To save this file to s3, please set **spark.sparklens.data.dir** to s3 path. This data file can now be used to run Sparklens reporting independently, using `spark-submit` command as follows:
 
-`./bin/spark-submit --packages qubole:sparklens:0.2.0-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
+`./bin/spark-submit --packages qubole:sparklens:0.3.1-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
 
-`<filename>` should be replaced by the full path of sparklens data file.
+`<filename>` should be replaced by the full path of sparklens json file. If the file is on s3 use the full s3 path. For files on local file system, use file:// prefix with the local file location. HDFS is supported as well. 
 
-#### 3. Run from spark event-history file ####
+You can also upload a Sparklens JSON data file to http://sparklens.qubole.com to see this report as an HTML page. 
 
-You can run sparklens on a previously run spark-app using event-history file also, (similar to 
-running via sparklens-data-file above) with another option specifying that is file is an 
-event-history file. This file can be in any of the formats event-history files supports, i.e. **text, snappy, lz4 
+#### 3. Run from Spark event-history file ####
+
+You can also run Sparklens on a previously run spark-app using an event history file, (similar to 
+running via `sparklens-json-file` above) with another option specifying that is file is an 
+event history file. This file can be in any of the formats the event history files supports, i.e. **text, snappy, lz4 
 or lzf**. Note the extra `source=history` parameter in this example:
 
-`./bin/spark-submit --packages qubole:sparklens:0.2.0-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
+`./bin/spark-submit --packages qubole:sparklens:0.3.1-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
+
+It is also possible to convert an event history file to a Sparklens json file using the following command:
+
+`./bin/spark-submit --packages qubole:sparklens:0.3.1-s_2.11 --class com.qubole.sparklens.app.EventHistoryToSparklensJson qubole-dummy-arg <srcDir> <targetDir>`
+
+EventHistoryToSparklensJson is designed to work on local file system only. Please make sure that the source and target directories are on local file system.
 
 #### 4. Checkout the code and use the normal sbt commands: #### 
 
@@ -117,25 +134,25 @@ sbt compile
 sbt package 
 sbt clean 
 ```
-You will find the Sparklens jar in target/scala-2.11 directory. Make sure scala and java version correspond to those required by your spark cluster. We have tested it with java 7/8, 
-scala 2.11.8 and spark versions 2.0.0 onwards. 
+You will find the Sparklens jar in the `target/scala-2.11` directory. Make sure the Scala and Java versions correspond to those required by your Spark cluster. We have tested it with Java 7/8, 
+Scala 2.11.8 and Spark versions 2.0.0 and onwards. 
 
-Once you have the Sparklens jar available, add the following options to your spark submit command line:
+Once you have the Sparklens JAR available, add the following options to your `spark-submit` command line:
 ```
---jars /path/to/sparklens_2.11-0.1.0.jar 
+--jars /path/to/sparklens_2.11-0.3.1.jar 
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 You could also add this to your cluster's **spark-defaults.conf** so that it is automatically available for all applications.
 
 
-### Working with Notebooks ###
-It is possible to use Sparklens in your development cycle using Notebooks. Sparklens keeps lots of information in-memory. 
-To make it work with Notebooks, it tries to minimize the amount of memory by keeping limited history of jobs executed 
-in spark. 
+## Working with Notebooks
+It is possible to use Sparklens in your development cycle using notebooks. Sparklens keeps lots of information in-memory. 
+To make it work with notebooks, it tries to minimize the amount of memory by keeping limited history of jobs executed 
+in Spark.
 
-### How to use Sparklens with Python Notebooks (Zeppelin)? ###
+## How to use Sparklens with Python notebooks (e.g. Zeppelin)
 
-1) Add this as first paragraph
+1) Add this as the first cell
 
 ```
 QNL = sc._jvm.com.qubole.sparklens.QuboleNotebookListener.registerAndGet(sc._jsc.sc())
@@ -150,10 +167,10 @@ endTime = long(round(time.time() * 1000))
 time.sleep(QNL.getWaiTimeInSeconds())
 print(QNL.getStats(startTime, endTime))
 ```
-2) wrap your code in some python function say myFunc
-3) profileIt(myFunc)
+2) Wrap your code in some python function say myFunc
+3) `profileIt(myFunc)`
 
-As you can see this is not the only way to use it from python. The core function is:
+As you can see this is not the only way to use it from Python. The core function is:
      **QNL.getStats(startTime, endTime)**
 
 Another way to use this tool, so that we don’t need to worry about objects going out of scope is:
@@ -166,21 +183,21 @@ if (QNL.estimateSize() > QNL.getMaxDataSize()):
   QNL.purgeJobsAndStages()
 startTime = long(round(time.time() * 1000))
 
-<-- Your python code here -->
+<-- Your Python code here -->
 
 endTime = long(round(time.time() * 1000))
 time.sleep(QNL.getWaiTimeInSeconds())
 print(QNL.getStats(startTime, endTime))
 ```
 
-**QNL.purgeJobsAndStages()** is responsible for making sure that the tool doesn’t use too much memory. 
-If gives up historical information, throwing away data about old stages to keep the memory usage 
+`QNL.purgeJobsAndStages()` is responsible for making sure that the tool doesn’t use too much memory. 
+It removes historical information, throwing away data about old stages to keep the memory usage 
 by the tool modest.
 
-### How to use Sparklens with Scala Notebooks (Zeppelin)? ###
+## How to use Sparklens with Scala notebooks (e.g. Zeppelin)
 
 
-1) Add this as first paragraph
+1) Add this as the first cell
 
 ```
 import com.qubole.sparklens.QuboleNotebookListener
@@ -195,24 +212,34 @@ QNL.profileIt {
 }
 ```
 
-It is important to realize that **QNL.profileIt** takes a block of code as input. Hence any variables declared in this
+It is important to realize that `QNL.profileIt` takes a block of code as input. Hence any variables declared in this
 part are not accessible after the method returns. Of course it can refer to other code/variables in scope. 
 
-The way to go about using this tool with Notebooks is to have only one paragraph in the profiling scope. The moment 
-you are happy with the results, just remove the profiling wrapper and execute the same paragraph again. This will ensure 
-that your variables come back in scope and are accessible to next paragraph. Also note that, the output of the tool 
-in Notebooks is little different from what you would see in command line. This is just to make the information concise. 
+The way to go about using this tool with notebooks is to have only one cell in the profiling scope. The moment 
+you are happy with the results, just remove the profiling wrapper and execute the same cell again. This will ensure 
+that your variables come back in scope and are accessible to next cell. Also note that, the output of the tool 
+in notebooks is little different from what you would see in command line. This is just to make the information concise. 
 We will be making this part configurable. 
 
-### More informtaion? ###
-* Introduction to Sparklens https://www.qubole.com/blog/introducing-quboles-spark-tuning-tool/
-* Video from meetup. Concepts behind Sparklens https://www.youtube.com/watch?v=0a2U4_6zsCc
-* Slides from meetup. https://lnkd.in/fCsrKXj
+## More informtaion?
+* [Introduction to Sparklens](https://www.qubole.com/blog/introducing-quboles-spark-tuning-tool/)
+* [Video from meetup: Concepts behind Sparklens](https://www.youtube.com/watch?v=0a2U4_6zsCc)
+* [Slides from meetup](https://lnkd.in/fCsrKXj)
+* [Video from Fifth Elephant Conference](https://www.youtube.com/watch?v=SOFztF-3GGk)
+* [Video from Spark AI Summit London 2018](https://www.youtube.com/watch?v=KS5vRZPLo6c)
 
-### Contributing ###
-We haven't given much thought. Just raise a PR and if you don't hear from us, shoot an email to 
-help@qubole.com to get our attention. 
+## Release Notes
+- [03/20/2018] Version 0.1.1 - Sparklens Core
+- [04/06/2018] Version 0.1.2 - Package name fixes
+- [08/07/2018] Version 0.2.0 - Support for offline reporting
+- [01/10/2019] Version 0.2.1 - Stability fixes
+- [05/10/2019] Version 0.3.0 - Support for handling parallel Jobs
+- [05/10/2019] Version 0.3.1 - Fixed JSON parsing issue with Spark 2.4.0 and above
 
-### Reporting bugs or feature requests ###
-Please use the github issues for the Sparklens project to report issues or raise feature requests. If you can code,
+## Contributing
+We haven't given this much thought. Just raise a PR and if you don't hear from us, shoot an email to 
+[help@qubole.com](mailto:help@qubole.com) to get our attention. 
+
+## Reporting bugs or feature requests
+Please use the GitHub issues for the Sparklens project to report issues or raise feature requests. If you can code,
 better raise a PR.

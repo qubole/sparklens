@@ -67,7 +67,7 @@ class AppContextSuite extends FunSuite {
       collection.mutable.HashMap((maxExecutors ++ remainingExecutors): _*)) == maximum)
 
     val endTime = System.currentTimeMillis()
-    assert (endTime - startTime < 1000, s"Took ${endTime - startTime} ms to find " +
+    assert (endTime - startTime < 2000, s"Took ${endTime - startTime} ms to find " +
       s"maximum concurrent executors for ${size} executors")
   }
 }
