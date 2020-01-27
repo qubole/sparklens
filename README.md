@@ -204,6 +204,9 @@ that your variables come back in scope and are accessible to next paragraph. Als
 in Notebooks is little different from what you would see in command line. This is just to make the information concise. 
 We will be making this part configurable. 
 
+### Working with Streaming Applications ###
+For using Sparklens with Spark Streaming applications, check out our new project [Streaminglens](https://github.com/qubole/streaminglens).
+
 ### More informtaion? ###
 * Introduction to Sparklens https://www.qubole.com/blog/introducing-quboles-spark-tuning-tool/
 * Video from meetup. Concepts behind Sparklens https://www.youtube.com/watch?v=0a2U4_6zsCc
