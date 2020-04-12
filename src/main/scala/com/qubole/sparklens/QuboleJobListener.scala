@@ -21,7 +21,7 @@ import java.net.URI
 
 import com.qubole.sparklens.analyzer._
 import com.qubole.sparklens.common.{AggregateMetrics, AppContext, ApplicationInfo}
-import com.qubole.sparklens.helper.HDFSConfigHelper
+import com.qubole.sparklens.helper.{EmailReportHelper, HDFSConfigHelper}
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan, JobTimeSpan, StageTimeSpan}
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkConf
@@ -130,14 +130,27 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     }
   }
 
-  private[this] def dumpData(appContext: AppContext): Unit = {
+  private[this] def dumpData(appContext: AppContext): String = {
     val dumpDir = getDumpDirectory(sparkConf)
     println(s"Saving sparkLens data to ${dumpDir}")
     val fs = FileSystem.get(new URI(dumpDir), HDFSConfigHelper.getHadoopConf(Some(sparkConf)))
-    val stream = fs.create(new Path(s"${dumpDir}/${appInfo.applicationID}.sparklens.json"))
+    val filePathStr = s"${dumpDir}/${appInfo.applicationID}.sparklens.json"
+    val stream = fs.create(new Path(filePathStr))
     val jsonString = appContext.toString
     stream.writeBytes(jsonString)
     stream.close()
+    EmailReportHelper.generateReport(filePathStr, sparkConf)
+    filePathStr
+  }
+
+  private def dumpAndDelete(appContext: AppContext): Unit = {
+    var sparklensJsonPath = _
+    try {
+      sparklensJsonPath = dumpData(appContext)
+    } finally {
+      val fs = FileSystem.get(new URI(sparklensJsonPath), HDFSConfigHelper.getHadoopConf(Some(sparkConf)))
+      fs.deleteOnExit(sparklensJsonPath)
+    }
   }
 
   override def onApplicationStart(applicationStart: SparkListenerApplicationStart): Unit = {
@@ -179,11 +192,16 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
         dumpData(appContext)
       }
       case false => {
-        if (dumpDataEnabled(sparkConf)) dumpData(appContext)
+        if (dumpDataEnabled(sparkConf)) {
+          dumpData(appContext)
+        } else {
+          dumpAndDelete(appContext)
+        }
         AppAnalyzer.startAnalyzers(appContext)
       }
     }
   }
+
   override def onExecutorAdded(executorAdded: SparkListenerExecutorAdded): Unit = {
     val executorTimeSpan = executorMap.get(executorAdded.executorId)
     if (!executorTimeSpan.isDefined) {

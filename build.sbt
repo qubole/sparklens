@@ -16,6 +16,8 @@ libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value %
 
 libraryDependencies +=  "org.apache.hadoop" % "hadoop-client" % "2.6.5" % "provided"
 
+libraryDependencies += "com.mashape.unirest" % "unirest-java" % "1.4.9"
+
 testOptions in Test += Tests.Argument("-oF")
 
 scalacOptions ++= Seq("-target:jvm-1.7")
