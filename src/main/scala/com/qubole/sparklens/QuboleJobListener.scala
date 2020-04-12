@@ -144,12 +144,12 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
   }
 
   private def dumpAndDelete(appContext: AppContext): Unit = {
-    var sparklensJsonPath = _
+    var sparklensJsonPath = ""
     try {
       sparklensJsonPath = dumpData(appContext)
     } finally {
       val fs = FileSystem.get(new URI(sparklensJsonPath), HDFSConfigHelper.getHadoopConf(Some(sparkConf)))
-      fs.deleteOnExit(sparklensJsonPath)
+      fs.deleteOnExit(new Path(sparklensJsonPath))
     }
   }
 
