@@ -71,7 +71,6 @@ object ReporterApp extends App {
   }
 
   private def reportFromSparklensDump(file: String): Unit = {
-    EmailReportHelper.generateReport(file, conf)
     val fs = FileSystem.get(new URI(file), HDFSConfigHelper.getHadoopConf(None))
 
     val path = new Path(file)
@@ -79,6 +78,7 @@ object ReporterApp extends App {
     fs.open(path).readFully(byteArray)
 
     val json = (byteArray.map(_.toChar)).mkString
+    EmailReportHelper.generateReport(json, conf)
     startAnalysersFromString(json)
 
   }

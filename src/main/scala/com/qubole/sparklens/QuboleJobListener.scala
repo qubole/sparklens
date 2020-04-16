@@ -132,25 +132,15 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
 
   private[this] def dumpData(appContext: AppContext): String = {
     val dumpDir = getDumpDirectory(sparkConf)
-    println(s"Saving sparkLens data to ${dumpDir}")
     val fs = FileSystem.get(new URI(dumpDir), HDFSConfigHelper.getHadoopConf(Some(sparkConf)))
     val filePathStr = s"${dumpDir}/${appInfo.applicationID}.sparklens.json"
+    println(s"Saving sparkLens data to $filePathStr")
     val stream = fs.create(new Path(filePathStr))
     val jsonString = appContext.toString
     stream.writeBytes(jsonString)
     stream.close()
-    EmailReportHelper.generateReport(filePathStr, sparkConf)
+    EmailReportHelper.generateReport(jsonString, sparkConf)
     filePathStr
-  }
-
-  private def dumpAndDelete(appContext: AppContext): Unit = {
-    var sparklensJsonPath = ""
-    try {
-      sparklensJsonPath = dumpData(appContext)
-    } finally {
-      val fs = FileSystem.get(new URI(sparklensJsonPath), HDFSConfigHelper.getHadoopConf(Some(sparkConf)))
-      fs.deleteOnExit(new Path(sparklensJsonPath))
-    }
   }
 
   override def onApplicationStart(applicationStart: SparkListenerApplicationStart): Unit = {
@@ -195,7 +185,7 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
         if (dumpDataEnabled(sparkConf)) {
           dumpData(appContext)
         } else {
-          dumpAndDelete(appContext)
+          EmailReportHelper.generateReport(appContext.toString(), sparkConf)
         }
         AppAnalyzer.startAnalyzers(appContext)
       }
