@@ -13,9 +13,16 @@ object EmailReportHelper {
     s"/tmp/sparklens/${random.nextInt.toString}.json"
   }
 
+  def isValid(email: String): Boolean =
+    """(\w+)@([\w\.]+)""".r.unapplySeq(email).isDefined
+
   def generateReport(appContextString: String, conf: SparkConf): Unit = {
     Option(conf.get("spark.sparklens.report.email", null)) match {
       case Some(email) =>
+        if (!isValid(email)) {
+          println(s"Email $email is not valid. Please provide a valid email.")
+          return
+        }
         val tempFileLocation = getTempFileLocation()
         try {
           val fileWriter = new FileWriter(tempFileLocation)
