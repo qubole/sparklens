@@ -1,7 +1,7 @@
 package com.qubole.sparklens.helper
 
-import java.io.File
-import java.io.FileWriter
+import java.io.{File, FileWriter}
+import java.nio.file.{Files, Paths}
 
 import com.mashape.unirest.http.Unirest
 import org.apache.spark.SparkConf
@@ -25,7 +25,10 @@ object EmailReportHelper {
         }
         val tempFileLocation = getTempFileLocation()
         try {
+          val file = new File(tempFileLocation)
+          file.getParentFile.mkdirs()
           val fileWriter = new FileWriter(tempFileLocation)
+
           fileWriter.write(appContextString)
           fileWriter.close()
           val response = Unirest.post("http://sparklens.qubole.com/generate_report/request_generate_report")
@@ -35,10 +38,10 @@ object EmailReportHelper {
           println(response.getBody)
         } catch {
           case e: Exception =>
-            println(e.getMessage)
+            println(s"Error while trying to generate email report: ${e.getMessage} \n " +
+              s"Try to use sparklens.qubole.com to generate the report manually" )
         } finally {
-          val file = new File(tempFileLocation)
-          file.deleteOnExit()
+          Files.deleteIfExists(Paths.get(tempFileLocation))
         }
       case _ =>
     }
