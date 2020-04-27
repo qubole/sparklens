@@ -16,7 +16,9 @@ libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value %
 
 libraryDependencies +=  "org.apache.hadoop" % "hadoop-client" % "2.6.5" % "provided"
 
-libraryDependencies += "com.mashape.unirest" % "unirest-java" % "1.4.9"
+libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.6" % "provided"
+
+libraryDependencies += "org.apache.httpcomponents" % "httpmime" % "4.5.6" % "provided"
 
 test in assembly := {}
 

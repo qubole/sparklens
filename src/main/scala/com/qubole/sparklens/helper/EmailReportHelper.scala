@@ -1,16 +1,15 @@
 package com.qubole.sparklens.helper
 
-import java.io.{File, FileWriter}
+import java.io.FileWriter
 import java.nio.file.{Files, Paths}
 
-import com.mashape.unirest.http.Unirest
 import org.apache.spark.SparkConf
 
 object EmailReportHelper {
 
   def getTempFileLocation(): String = {
     val random = new scala.util.Random(31)
-    s"/tmp/sparklens/${random.nextInt.toString}.json"
+    s"/tmp/${random.nextInt.toString}.json"
   }
 
   def isValid(email: String): Boolean =
@@ -25,17 +24,12 @@ object EmailReportHelper {
         }
         val tempFileLocation = getTempFileLocation()
         try {
-          val file = new File(tempFileLocation)
-          file.getParentFile.mkdirs()
           val fileWriter = new FileWriter(tempFileLocation)
 
           fileWriter.write(appContextString)
           fileWriter.close()
-          val response = Unirest.post("http://sparklens.qubole.com/generate_report/request_generate_report")
-            .field("file-2[]", new File(tempFileLocation))
-            .field("email", email)
-            .asJson()
-          println(response.getBody)
+          val response = HttpRequestHandler.requestReport(tempFileLocation, email)
+          println(response.getEntity)
         } catch {
           case e: Exception =>
             println(s"Error while trying to generate email report: ${e.getMessage} \n " +
