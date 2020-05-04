@@ -7,7 +7,7 @@ import com.ning.compress.lzf.LZFInputStream
 import com.qubole.sparklens.QuboleJobListener
 import com.qubole.sparklens.analyzer.AppAnalyzer
 import com.qubole.sparklens.common.{AppContext, Json4sWrapper}
-import com.qubole.sparklens.helper.HDFSConfigHelper
+import com.qubole.sparklens.helper.{EmailReportHelper, HDFSConfigHelper}
 import net.jpountz.lz4.LZ4BlockInputStream
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.SparkConf
@@ -21,6 +21,8 @@ object ReporterApp extends App {
   val usage = "Need to specify sparklens data file\n" +
     "Of specify event-history file and also add \"source=history\" or \"source=sparklens\".\n" +
     "If \"source\" is not specified, sparklens is chosen by default."
+
+  val conf = new SparkConf()
 
   checkArgs()
   parseInput()
@@ -76,6 +78,7 @@ object ReporterApp extends App {
     fs.open(path).readFully(byteArray)
 
     val json = (byteArray.map(_.toChar)).mkString
+    EmailReportHelper.generateReport(json, conf)
     startAnalysersFromString(json)
 
   }

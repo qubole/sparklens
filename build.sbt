@@ -16,6 +16,12 @@ libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value %
 
 libraryDependencies +=  "org.apache.hadoop" % "hadoop-client" % "2.6.5" % "provided"
 
+libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.6" % "provided"
+
+libraryDependencies += "org.apache.httpcomponents" % "httpmime" % "4.5.6" % "provided"
+
+test in assembly := {}
+
 testOptions in Test += Tests.Argument("-oF")
 
 scalacOptions ++= Seq("-target:jvm-1.7")
