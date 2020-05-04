@@ -87,9 +87,14 @@ Spark users can help us in finding what is missing here by raising challenging t
 
 #### 1. Using the Sparklens package while running your app #### 
 
+Note: Apart from the console based report, you can also get an UI based report similar to 
+[this](http://sparklens.qubole.com/report_view/1b3868a49388e7ab6a16) in your email. You have to pass
+ `--conf spark.sparklens.report.email=<email>` along with other relevant confs mentioned below.
+ This functionality is available in Sparklens 0.3.2 and above.  
+
 Use the following arguments to `spark-submit` or `spark-shell`:
 ```
---packages qubole:sparklens:0.3.1-s_2.11
+--packages qubole:sparklens:0.3.2-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
@@ -98,7 +103,7 @@ Use the following arguments to `spark-submit` or `spark-shell`:
 You can choose not to run sparklens inside the app, but at a later time. Run your app as above 
 with additional configuration parameters:
 ```
---packages qubole:sparklens:0.3.1-s_2.11
+--packages qubole:sparklens:0.3.2-s_2.11
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 --conf spark.sparklens.reporting.disabled=true
 ```
@@ -106,7 +111,7 @@ with additional configuration parameters:
 This will not run reporting, but instead create a Sparklens JSON file for the application which is 
 stored in the **spark.sparklens.data.dir** directory (by default, **/tmp/sparklens/**). Note that this will be stored on HDFS by default. To save this file to s3, please set **spark.sparklens.data.dir** to s3 path. This data file can now be used to run Sparklens reporting independently, using `spark-submit` command as follows:
 
-`./bin/spark-submit --packages qubole:sparklens:0.3.1-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
+`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
 
 `<filename>` should be replaced by the full path of sparklens json file. If the file is on s3 use the full s3 path. For files on local file system, use file:// prefix with the local file location. HDFS is supported as well. 
 
@@ -119,11 +124,11 @@ running via `sparklens-json-file` above) with another option specifying that is 
 event history file. This file can be in any of the formats the event history files supports, i.e. **text, snappy, lz4 
 or lzf**. Note the extra `source=history` parameter in this example:
 
-`./bin/spark-submit --packages qubole:sparklens:0.3.1-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
+`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
 
 It is also possible to convert an event history file to a Sparklens json file using the following command:
 
-`./bin/spark-submit --packages qubole:sparklens:0.3.1-s_2.11 --class com.qubole.sparklens.app.EventHistoryToSparklensJson qubole-dummy-arg <srcDir> <targetDir>`
+`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.EventHistoryToSparklensJson qubole-dummy-arg <srcDir> <targetDir>`
 
 EventHistoryToSparklensJson is designed to work on local file system only. Please make sure that the source and target directories are on local file system.
 
@@ -139,7 +144,7 @@ Scala 2.11.8 and Spark versions 2.0.0 and onwards.
 
 Once you have the Sparklens JAR available, add the following options to your `spark-submit` command line:
 ```
---jars /path/to/sparklens_2.11-0.3.1.jar 
+--jars /path/to/sparklens_2.11-0.3.2.jar 
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 You could also add this to your cluster's **spark-defaults.conf** so that it is automatically available for all applications.
@@ -235,6 +240,7 @@ We will be making this part configurable.
 - [01/10/2019] Version 0.2.1 - Stability fixes
 - [05/10/2019] Version 0.3.0 - Support for handling parallel Jobs
 - [05/10/2019] Version 0.3.1 - Fixed JSON parsing issue with Spark 2.4.0 and above
+- [05/06/2020] Version 0.3.2 - Support for generating email based report using sparklens.qubole.com
 
 ## Contributing
 We haven't given this much thought. Just raise a PR and if you don't hear from us, shoot an email to 
