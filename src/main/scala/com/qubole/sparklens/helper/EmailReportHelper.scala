@@ -13,7 +13,7 @@ object EmailReportHelper {
   }
 
   def isValid(email: String): Boolean =
-    """(\w+)@([\w\.]+)""".r.unapplySeq(email).isDefined
+    """(\w+)((\.)(\w+))?@([\w\.]+)""".r.unapplySeq(email).isDefined
 
   def generateReport(appContextString: String, conf: SparkConf): Unit = {
     Option(conf.get("spark.sparklens.report.email", null)) match {
