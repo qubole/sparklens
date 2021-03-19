@@ -257,7 +257,8 @@ class QuboleJobListener(sparkConf: SparkConf)  extends SparkListener {
     if (stageCompleted.stageInfo.failureReason.isDefined) {
       //stage failed
       val si = stageCompleted.stageInfo
-      failedStages += s""" Stage ${si.stageId} attempt ${si.attemptId} in job ${stageIDToJobID(si.stageId)} failed.
+      // attempt-id is deprecated and attemptNumber is used to get attempt-id from spark-3.0.0
+      failedStages += s""" Stage ${si.stageId} attempt ${si.attemptNumber} in job ${stageIDToJobID(si.stageId)} failed.
                       Stage tasks: ${si.numTasks}
                       """
       stageTimeSpan.finalUpdate()
