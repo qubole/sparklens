@@ -24,11 +24,16 @@ import org.apache.spark.deploy.SparkHadoopUtil
 object HDFSConfigHelper {
 
    def getHadoopConf(sparkConfOptional:Option[SparkConf]): Configuration = {
-    if (sparkConfOptional.isDefined) {
-      SparkHadoopUtil.get.newConfiguration(sparkConfOptional.get)
-    }else {
-      val sparkConf = new SparkConf()
-      SparkHadoopUtil.get.newConfiguration(sparkConf)
-    }
+     // After Spark 3.0.0 SparkHadoopUtil is made private to make it work only within the spark
+     // using reflection code here to access the newConfiguration method of the SparkHadoopUtil
+     val sparkHadoopUtilClass = Class.forName("org.apache.spark.deploy.SparkHadoopUtil")
+     val sparkHadoopUtil = sparkHadoopUtilClass.newInstance()
+     val newConfigurationMethod = sparkHadoopUtilClass.getMethod("newConfiguration", classOf[SparkConf])
+     if (sparkConfOptional.isDefined) {
+       newConfigurationMethod.invoke(sparkHadoopUtil, sparkConfOptional.get).asInstanceOf[Configuration]
+     } else {
+       val sparkConf = new SparkConf()
+       newConfigurationMethod.invoke(sparkHadoopUtil, sparkConf).asInstanceOf[Configuration]
+     }
   }
 }
