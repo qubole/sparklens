@@ -76,6 +76,30 @@ Use spark.sql(""" Your Query """) scala or python snippet to profile it
 class QuboleNotebookListener(sparkConf: SparkConf) extends QuboleJobListener(sparkConf: SparkConf) {
 
   private lazy val defaultExecutorCores = sparkConf.getInt("spark.executor.cores", 2)
+
+  def getStats_json(fromTime: Long, toTime: Long) : String = {
+
+    val list = new ListBuffer[AppAnalyzer]
+    list += new StageSkewAnalyzer
+    list += new ExecutorWallclockAnalyzer
+    list += new EfficiencyStatisticsAnalyzer
+
+    val appContext = new AppContext(appInfo,
+      appMetrics,
+      hostMap,
+      executorMap,
+      jobMap,
+      jobSQLExecIDMap,
+      stageMap,
+      stageIDToJobID)
+
+    val appContextFiltered = appContext.filterByStartAndEndTime(fromTime, toTime)
+    appContextFiltered.appInfo.startTime = fromTime
+    appContextFiltered.appInfo.endTime = toTime
+
+    appContext.toString
+  }
+
   /**
     * No need to print statistics at the end of the Job
     * @param applicationEnd
