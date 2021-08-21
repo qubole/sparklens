@@ -224,7 +224,10 @@ The way to go about using this tool with notebooks is to have only one cell in t
 you are happy with the results, just remove the profiling wrapper and execute the same cell again. This will ensure 
 that your variables come back in scope and are accessible to next cell. Also note that, the output of the tool 
 in notebooks is little different from what you would see in command line. This is just to make the information concise. 
-We will be making this part configurable. 
+We will be making this part configurable.
+
+### Working with Streaming Applications ###
+For using Sparklens with Spark Streaming applications, check out our new project [Streaminglens](https://github.com/qubole/streaminglens).
 
 ## More informtaion?
 * [Introduction to Sparklens](https://www.qubole.com/blog/introducing-quboles-spark-tuning-tool/)
