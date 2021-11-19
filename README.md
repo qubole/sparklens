@@ -2,6 +2,8 @@
 
 # README #
 
+[![Join the chat at https://gitter.im/qubole-sparklens/community](https://badges.gitter.im/qubole-sparklens/community.svg)](https://gitter.im/qubole-sparklens/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Sparklens is a profiling tool for Spark with a built-in Spark scheduler simulator. Its primary goal is to make it easy 
 to understand the scalability limits of Spark applications. It helps in understanding how efficiently a given 
 Spark application is using the compute resources provided to it. Maybe your application will run faster with more 
