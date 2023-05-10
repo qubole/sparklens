@@ -3,7 +3,7 @@ organization := "com.qubole"
 
 scalaVersion := "2.11.8"
 
-crossScalaVersions := Seq("2.10.6", "2.11.8")
+crossScalaVersions := Seq("2.11.8")
 
 spName := "qubole/sparklens"
 
@@ -24,9 +24,9 @@ test in assembly := {}
 
 testOptions in Test += Tests.Argument("-oF")
 
-scalacOptions ++= Seq("-target:jvm-1.7")
+scalacOptions ++= Seq("-target:jvm-1.8")
 
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 publishMavenStyle := true
 
