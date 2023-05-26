@@ -1,29 +1,32 @@
 package com.qubole.sparklens.app
 
-import java.io.File
+import com.qubole.sparklens.helper.HDFSConfigHelper
+import org.apache.hadoop.fs.{FileSystem, Path}
 
 object EventHistoryToSparklensJson  {
 
   def main(args:Array[String]):Unit = {
-    val defaultDestination = new File("/tmp/sparklens/")
+    val defaultDestination = new Path("/tmp/sparklens/")
 
     val dirs = args.length match  {
-      case 0 => (new File("."), defaultDestination)
-      case 1 => (new File(args(0)), defaultDestination)
-      case _ => (new File(args(0)), new File(args(1)))
+      case 0 => (new Path("."), defaultDestination)
+      case 1 => (new Path(args(0)), defaultDestination)
+      case _ => (new Path(args(0)), new Path(args(1)))
     }
     println("Converting Event History files to Sparklens Json files")
-    println(s"src: ${dirs._1.getAbsolutePath} destination: ${dirs._2.getAbsolutePath}")
+    println(s"src: ${dirs._1.toUri.getRawPath} destination: ${dirs._2.toUri.getRawPath}")
     convert(dirs._1, dirs._2)
   }
 
-  private def convert(srcLoc:File, destLoc:File): Unit = {
-    if (srcLoc.isFile) {
+  private def convert(srcLoc:Path, destLoc:Path): Unit = {
+    val dfs = FileSystem.get(srcLoc.toUri, HDFSConfigHelper.getHadoopConf(None))
+
+    if (dfs.getFileStatus(srcLoc).isFile) {
       try {
-        new EventHistoryReporter(srcLoc.getAbsolutePath, List(
+        new EventHistoryReporter(srcLoc.toUri.getRawPath, List(
           ("spark.sparklens.reporting.disabled", "true"),
           ("spark.sparklens.save.data", "true"),
-          ("spark.sparklens.data.dir", destLoc.getAbsolutePath)
+          ("spark.sparklens.data.dir", destLoc.toUri.getRawPath)
         ))
       } catch {
         case e: Exception => {
@@ -32,8 +35,8 @@ object EventHistoryToSparklensJson  {
       }
     } else {
       //This is a directory. Process all files
-      srcLoc.listFiles().foreach( f => {
-        convert(f, destLoc)
+      dfs.listStatus(srcLoc).foreach( f => {
+        convert(f.getPath, destLoc)
       })
     }
   }

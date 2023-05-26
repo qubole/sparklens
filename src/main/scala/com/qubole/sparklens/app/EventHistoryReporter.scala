@@ -2,7 +2,6 @@ package com.qubole.sparklens.app
 
 import java.io.{BufferedInputStream, InputStream}
 import java.net.URI
-
 import com.ning.compress.lzf.LZFInputStream
 import com.qubole.sparklens.QuboleJobListener
 import com.qubole.sparklens.common.Json4sWrapper

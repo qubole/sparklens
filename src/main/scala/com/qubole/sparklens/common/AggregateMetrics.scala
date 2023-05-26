@@ -17,10 +17,10 @@
 
 package com.qubole.sparklens.common
 
-import java.util.Locale
-
 import org.apache.spark.executor.TaskMetrics
 import org.apache.spark.scheduler.TaskInfo
+
+import java.util.Locale
 import org.json4s.DefaultFormats
 import org.json4s.JsonAST.JValue
 
