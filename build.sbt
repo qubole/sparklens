@@ -1,24 +1,24 @@
 name := "sparklens"
 organization := "com.qubole"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.15"
 
-crossScalaVersions := Seq("2.11.8")
+crossScalaVersions := Seq("2.12.15")
 
 spName := "qubole/sparklens"
 
-sparkVersion := "2.0.0"
+sparkVersion := "3.2.1"
 
 spAppendScalaVersion := true
 
 
 libraryDependencies += "org.apache.spark" %% "spark-core" % sparkVersion.value % "provided"
 
-libraryDependencies +=  "org.apache.hadoop" % "hadoop-client" % "2.6.5" % "provided"
+libraryDependencies +=  "org.apache.hadoop" % "hadoop-client" % "3.2.1" % "provided"
 
-libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.6" % "provided"
+libraryDependencies += "org.apache.httpcomponents" % "httpclient" % "4.5.13" % "provided"
 
-libraryDependencies += "org.apache.httpcomponents" % "httpmime" % "4.5.6" % "provided"
+libraryDependencies += "org.apache.httpcomponents" % "httpmime" % "4.5.13" % "provided"
 
 test in assembly := {}
 

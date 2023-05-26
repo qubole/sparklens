@@ -19,9 +19,9 @@ package com.qubole.sparklens
 import com.qubole.sparklens.analyzer.{AppAnalyzer, EfficiencyStatisticsAnalyzer, ExecutorWallclockAnalyzer, StageSkewAnalyzer}
 import com.qubole.sparklens.common.AppContext
 import com.qubole.sparklens.timespan.{ExecutorTimeSpan, HostTimeSpan}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.scheduler.{SparkListenerApplicationEnd, SparkListenerTaskStart}
 import org.apache.spark.util.SizeEstimator
-import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
