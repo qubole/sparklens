@@ -1,9 +1,9 @@
 package com.qubole.sparklens.helper
 
+import org.apache.spark.SparkConf
+
 import java.io.FileWriter
 import java.nio.file.{Files, Paths}
-
-import org.apache.spark.SparkConf
 
 object EmailReportHelper {
 
